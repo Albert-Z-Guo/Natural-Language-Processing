@@ -2,7 +2,7 @@
 
 ## Project on Golden Globes Host(s) and Awards Identification via Tweets
 
-Identification includes, but not limited to
+Identification tasks include, but not limited to
 1. Host(s)
 2. Award Names
 3. Awards Presenters
