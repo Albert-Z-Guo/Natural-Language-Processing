@@ -1,6 +1,6 @@
 # Natural-Language-Processing
 
-## Project on Golden Globes Host(s) and Awards identification via Tweets
+## Project on Golden Globes Host(s) and Awards Identification via Tweets
 
 Identification includes, but not limited to
 1. Host(s)
