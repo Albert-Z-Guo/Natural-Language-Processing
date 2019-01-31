@@ -4,7 +4,7 @@
 
 Identification tasks include, but not limited to
 1. Host(s)
-2. Award Names
+2. Awards Names
 3. Awards Presenters
 4. Awards Nominees
 5. Awards Winners
