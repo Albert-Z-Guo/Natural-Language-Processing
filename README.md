@@ -9,6 +9,12 @@ Identification tasks include, but not limited to
 4. Awards Nominees
 5. Awards Winners
 
+Tweets (2015) used in this project were collected if they matched the query
+```python
+track = ['gg','golden globes', 'golden globe', 'goldenglobe','goldenglobes','gg2015','gg15','goldenglobe2015','goldenglobe15','goldenglobes2015','goldenglobes15','redcarpet,'red carpet','redcarpet15','redcarpet2015','nominees','nominee','globesparty','globesparties']
+```
+
+
 Team Members:
 - Yihong Hu [@Huhuhu812](https://github.com/Huhuhu812)
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
