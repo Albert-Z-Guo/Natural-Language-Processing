@@ -8,6 +8,7 @@ track = ['gg', 'golden globes', 'golden globe', 'goldenglobe', 'goldenglobes', '
          'goldenglobe2015', 'goldenglobe15', 'goldenglobes2015', 'goldenglobes15', 'redcarpet', 
          'red carpet', 'redcarpet15', 'redcarpet2015', 'nominees', 'nominee', 'globesparty', 'globesparties']
 ```
+See [Twitter API "track" parameter](https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters) for details.
 
 Identification tasks include, but not limited to
 1. Host(s)
