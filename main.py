@@ -15,6 +15,9 @@ hashtag_freq_dict = {}
 at_freq_dict = {}
 
 
+HOSTS = None
+
+
 def remove_retweet_prefix(line):
     # find 'RT @abc: ' where abc's length is arbitrary
     pattern = re.compile(r'\bRT @([\w\'/]*)\b: ')
@@ -94,7 +97,7 @@ def find_host(cleansed_data):
 
 
 # we also consider dropping all lower cases examples or examples that contain digit(s), which are not names
-def filter_names(pair_list):
+def filter_names(pair_list, entity_freq_dict):
     filtered_results = []
     for pair in pair_list:
         string = ''.join(pair[0].split())
@@ -103,7 +106,7 @@ def filter_names(pair_list):
         else:
             if pair[0] in entity_freq_dict:
                 del entity_freq_dict[pair[0]]
-    return filtered_results
+    return filtered_results, entity_freq_dict
 
 
 def merge_names(top_results, entity_freq_dict):
@@ -157,7 +160,59 @@ def merge_names(top_results, entity_freq_dict):
     return top_10
 
 
-if __name__ == "__main__":
+# the following global variable and functions are adapted from gg_api from autograder
+OFFICIAL_AWARDS = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
+
+
+def get_hosts(year):
+    '''Hosts is a list of one or more strings. Do NOT change the name
+    of this function or what it returns.'''
+    # Your code here
+    return HOSTS
+
+
+def get_awards(year):
+    '''Awards is a list of strings. Do NOT change the name
+    of this function or what it returns.'''
+    # Your code here
+    return awards
+
+
+def get_nominees(year):
+    '''Nominees is a dictionary with the hard coded award
+    names as keys, and each entry a list of strings. Do NOT change
+    the name of this function or what it returns.'''
+    # Your code here
+    return nominees
+
+
+def get_winner(year):
+    '''Winners is a dictionary with the hard coded award
+    names as keys, and each entry containing a single string.
+    Do NOT change the name of this function or what it returns.'''
+    # Your code here
+    return winners
+
+
+def get_presenters(year):
+    '''Presenters is a dictionary with the hard coded award
+    names as keys, and each entry a list of strings. Do NOT change the
+    name of this function or what it returns.'''
+    # Your code here
+    return presenters
+
+
+def pre_ceremony():
+    '''This function loads/fetches/processes any data your program
+    will use, and stores that data in your DB or in a json, csv, or
+    plain text file. It is the first thing the TA will run when grading.
+    Do NOT change the name of this function or what it returns.'''
+    # Your code here
+    print("Pre-ceremony processing complete.")
+    return
+
+
+def main():
     start_time = time.time()
     df = pd.read_json(path_or_buf='gg2013.json')
     # df = pd.read_json(path_or_buf='gg2015.json')
@@ -188,9 +243,15 @@ if __name__ == "__main__":
         if name in entity_freq_dict:
             del entity_freq_dict[name]
     top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:50]
-    top_results = filter_names(top_results)
+    top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
-    best_host_prediction = [name[0] for name in top_10][:2]
-    print(best_host_prediction)
+    global HOSTS
+    HOSTS = [name[0] for name in top_10][:2]
+
+    print(HOSTS)
 
     print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
+
+
+if __name__ == '__main__':
+    main()
