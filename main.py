@@ -15,6 +15,7 @@ hashtag_freq_dict = {}
 at_freq_dict = {}
 
 
+# global variables to be later updated and read for autograder
 HOSTS = None
 
 
@@ -160,7 +161,47 @@ def merge_names(top_results, entity_freq_dict):
     return top_10
 
 
-# the following global variable and functions are adapted from gg_api from autograder
+def main():
+    start_time = time.time()
+    df = pd.read_json(path_or_buf='gg2013.json')
+    # df = pd.read_json(path_or_buf='gg2015.json')
+
+    data = df['text']
+    # sample data if necessary
+    sample_size = 200000
+    if len(df) > sample_size:
+        data = data.sample(n=sample_size)
+
+    cleansed_data = []
+    for tweet in data:
+        line = remove_retweet_prefix(tweet)
+        line = remove_hashtag(line)
+        line = remove_at(line)
+        line = remove_url(line)
+        line = cleanse(line)
+        cleansed_data.append(line)
+
+    # find host
+    print('finding hosts...')
+    entity_freq_dict = find_host(cleansed_data)
+    top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
+    names = [pair[0] for pair in top_100]
+    # remove 'golden globes' from identified host names
+    golden_globes = [name for name in names if fuzz.ratio(name.lower(), 'golden globes') > 60]
+    for name in golden_globes:
+        if name in entity_freq_dict:
+            del entity_freq_dict[name]
+    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:50]
+    top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
+    top_10 = merge_names(top_results, entity_freq_dict)
+    global HOSTS
+    HOSTS = [name[0] for name in top_10][:2]
+
+    print(HOSTS)
+    print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
+
+
+# the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
 
 
@@ -210,47 +251,6 @@ def pre_ceremony():
     # Your code here
     print("Pre-ceremony processing complete.")
     return
-
-
-def main():
-    start_time = time.time()
-    df = pd.read_json(path_or_buf='gg2013.json')
-    # df = pd.read_json(path_or_buf='gg2015.json')
-
-    data = df['text']
-    # sample data if necessary
-    sample_size = 200000
-    if len(df) > sample_size:
-        data = data.sample(n=sample_size)
-
-    cleansed_data = []
-    for tweet in data:
-        line = remove_retweet_prefix(tweet)
-        line = remove_hashtag(line)
-        line = remove_at(line)
-        line = remove_url(line)
-        line = cleanse(line)
-        cleansed_data.append(line)
-
-    # find host
-    print('finding hosts...')
-    entity_freq_dict = find_host(cleansed_data)
-    top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
-    names = [pair[0] for pair in top_100]
-    # remove 'golden globes' from identified host names
-    golden_globes = [name for name in names if fuzz.ratio(name.lower(), 'golden globes') > 60]
-    for name in golden_globes:
-        if name in entity_freq_dict:
-            del entity_freq_dict[name]
-    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:50]
-    top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
-    top_10 = merge_names(top_results, entity_freq_dict)
-    global HOSTS
-    HOSTS = [name[0] for name in top_10][:2]
-
-    print(HOSTS)
-
-    print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
 
 
 if __name__ == '__main__':
