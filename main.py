@@ -2,7 +2,7 @@ import time
 import json
 import re
 
-# pip3 install python-Levenshtein for 4-10x speedup
+# pip3 install python-Levenshtein for 4-10x speedup for fuzzywuzzy
 from fuzzywuzzy import fuzz
 import pandas as pd
 import spacy
@@ -33,7 +33,6 @@ def remove_hashtag(line):
     pattern = re.compile(r'#([\w\'/]*)\b')
     matches = re.findall(pattern, line)
     if matches:
-        # store corresponding hashtag
         for match in matches:
             if match in hashtag_freq_dict:
                 hashtag_freq_dict[match] += 1
@@ -46,7 +45,6 @@ def remove_at(line):
     pattern = re.compile(r'@([\w\'/]*)\b')
     matches = re.findall(pattern, line)
     if matches:
-        # store corresponding hashtag
         for match in matches:
             if match in at_freq_dict:
                 at_freq_dict[match] += 1
@@ -79,7 +77,7 @@ def identify_entities(text):
     return tags
 
 
-def find_host():
+def find_host(cleansed_data):
     pattern = re.compile(r'host')
     entity_freq_dict = {}
     for line in cleansed_data:
@@ -181,7 +179,7 @@ if __name__ == "__main__":
 
     # find host
     print('finding hosts...')
-    entity_freq_dict = find_host()
+    entity_freq_dict = find_host(cleansed_data)
     top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
     names = [pair[0] for pair in top_100]
     # remove 'golden globes' from identified host names
