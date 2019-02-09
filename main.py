@@ -70,7 +70,6 @@ def cleanse(line):
     return re.sub(r'[^\w\s\'#@]', ' ', line)
 
 
-
 def identify_entities(text):
     tags = {}
     entities = list(nlp(text).ents)
@@ -83,19 +82,16 @@ def identify_entities(text):
 def find_host():
     pattern = re.compile(r'host')
     entity_freq_dict = {}
-    num = 0
     for line in cleansed_data:
         match = re.search(pattern, line.lower())
         if match:
-            tags = identify_entities(line)
-            for entity in tags.keys():
+            for entity in identify_entities(line).keys():
                 entity = remove_apostrophe(entity).strip()
                 if len(entity) > 1:
                     if entity not in entity_freq_dict:
                         entity_freq_dict[entity] = 1
                     else:
                         entity_freq_dict[entity] += 1
-            num += 1
     return entity_freq_dict
 
 
@@ -162,6 +158,7 @@ def merge_names(top_results, entity_freq_dict):
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
     return top_10
 
+
 if __name__ == "__main__":
     start_time = time.time()
     df = pd.read_json(path_or_buf='gg2013.json')
@@ -175,15 +172,10 @@ if __name__ == "__main__":
 
     cleansed_data = []
     for tweet in data:
-        # remove_retweet_prefix
         line = remove_retweet_prefix(tweet)
-        # remove hashtag
         line = remove_hashtag(line)
-        # remove @...
         line = remove_at(line)
-        # remove url
         line = remove_url(line)
-        # remove punctuations except apostrophe
         line = cleanse(line)
         cleansed_data.append(line)
 
