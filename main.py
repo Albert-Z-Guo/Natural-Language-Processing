@@ -1,3 +1,4 @@
+import time
 import json
 import re
 
@@ -162,6 +163,7 @@ def merge_names(top_results, entity_freq_dict):
     return top_10
 
 if __name__ == "__main__":
+    start_time = time.time()
     df = pd.read_json(path_or_buf='gg2013.json')
     # df = pd.read_json(path_or_buf='gg2015.json')
 
@@ -200,3 +202,5 @@ if __name__ == "__main__":
     top_10 = merge_names(top_results, entity_freq_dict)
     best_host_prediction = [name[0] for name in top_10][:2]
     print(best_host_prediction)
+
+    print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
