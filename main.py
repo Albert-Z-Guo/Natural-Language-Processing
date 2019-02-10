@@ -82,18 +82,26 @@ def identify_entities(text):
 
 
 def find_host(cleansed_data):
-    pattern = re.compile(r'host')
+    pattern = re.compile(r'\bhost')
     entity_freq_dict = {}
     for line in cleansed_data:
         match = re.search(pattern, line.lower())
         if match:
             for entity in identify_entities(line).keys():
-                entity = remove_apostrophe(entity).strip()
+                entity = entity.strip()
                 if len(entity) > 1:
                     if entity not in entity_freq_dict:
                         entity_freq_dict[entity] = 1
                     else:
                         entity_freq_dict[entity] += 1
+    return entity_freq_dict
+
+
+def remove_goldeb_globes(top_results, entity_freq_dict):
+    golden_globes = [name for name in [pair[0] for pair in top_results] if fuzz.ratio(name.lower(), 'golden globes') > 60]
+    for name in golden_globes:
+        if name in entity_freq_dict:
+            del entity_freq_dict[name]
     return entity_freq_dict
 
 
@@ -172,6 +180,7 @@ def main():
     if len(df) > sample_size:
         data = data.sample(n=sample_size)
 
+    # clean tweets
     cleansed_data = []
     for tweet in data:
         line = remove_retweet_prefix(tweet)
@@ -185,13 +194,10 @@ def main():
     print('finding hosts...')
     entity_freq_dict = find_host(cleansed_data)
     top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
-    names = [pair[0] for pair in top_100]
     # remove 'golden globes' from identified host names
-    golden_globes = [name for name in names if fuzz.ratio(name.lower(), 'golden globes') > 60]
-    for name in golden_globes:
-        if name in entity_freq_dict:
-            del entity_freq_dict[name]
+    entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
     top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:50]
+    # filter for names
     top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
     global HOSTS
