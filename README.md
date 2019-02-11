@@ -30,7 +30,12 @@ Team Members:
 
 ## Getting Started
 ### Installation
-You can install all the dependencies by
+To install all the libraries/dependencies used in this project:
 ```
 pip install -r requirements.txt
+```
+
+To download the language model used in this project:
+```python
+python3 -m spacy download en
 ```
