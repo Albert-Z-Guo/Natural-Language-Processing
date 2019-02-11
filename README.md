@@ -20,8 +20,6 @@ Identification tasks include, but not limited to
 4. Awards Nominees
 5. Awards Winners
 
-
-
 Team Members:
 - Yihong Hu [@Huhuhu812](https://github.com/Huhuhu812)
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
