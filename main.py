@@ -17,6 +17,7 @@ at_freq_dict = {}
 
 # global variables to be later updated and read for autograder
 HOSTS = None
+AWARDS = None
 
 
 def remove_retweet_prefix(line):
@@ -168,6 +169,32 @@ def merge_names(top_results, entity_freq_dict):
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
     return top_10
 
+def find_awards(data):
+    endlist = ['picture', 'television', 'drama', 'comedy', 'animated']
+    awards = {}
+    for item in data:
+        l = item.lower().split()
+        for j in endlist:
+            if 'best' in l and j in l:
+                temp1 = l.index('best')
+                temp2 = l.index(j)
+                if temp1 < temp2:
+                    l2 = ['television' if x == 'tv' else x for x in l]
+                    key1 = " ".join(l2[temp1:temp2 + 1])
+                    if key1 not in awards:
+                        awards[key1] = 1
+                    else:
+                        awards[key1] += 1
+    res = []
+    for item in awards:
+        if awards.get(item) > 95:
+            l = item
+            if len(l.split()) > 3:
+                res.append(item)
+    res.sort()
+    res.append('cecil b.demille award')
+    return res
+
 
 def main():
     start_time = time.time()
@@ -206,6 +233,11 @@ def main():
     print(HOSTS)
     print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
 
+    # find awards
+    print('finding awards...')
+    AWARDS = find_awards(cleansed_data)
+
+
 
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
@@ -222,7 +254,8 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    return awards
+
+    return AWARDS
 
 
 def get_nominees(year):
