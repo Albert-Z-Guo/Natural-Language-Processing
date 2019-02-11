@@ -229,13 +229,15 @@ def main():
     top_10 = merge_names(top_results, entity_freq_dict)
     global HOSTS
     HOSTS = [name[0] for name in top_10][:2]
-
     print(HOSTS)
-    print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
 
     # find awards
     print('finding awards...')
+    global AWARDS
     AWARDS = find_awards(cleansed_data)
+    print(AWARDS)
+
+    print('total running time: {0:.2f} seconds'.format(time.time() - start_time))
 
 
 
