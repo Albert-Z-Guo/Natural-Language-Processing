@@ -1,6 +1,7 @@
 # Natural-Language-Processing
 
-## Project on Golden Globes Host(s) and Awards Identification via Tweets
+## Project Description
+### Golden Globes Host(s) and Awards Identification via Tweets
 
 Tweets (2015) used in this project were retrieved if they matched the query:
 ```python
@@ -19,8 +20,17 @@ Identification tasks include, but not limited to
 4. Awards Nominees
 5. Awards Winners
 
+
+
 Team Members:
 - Yihong Hu [@Huhuhu812](https://github.com/Huhuhu812)
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
 - Yunwen Wang [@OREOmini](https://github.com/OREOmini)
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
+
+## Getting Started
+### Installation
+You can install all the dependencies by
+```
+pip install -r requirements.txt
+```
