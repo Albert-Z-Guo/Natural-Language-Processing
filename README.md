@@ -34,6 +34,6 @@ pip install -r requirements.txt
 ```
 
 To download the language model used in this project:
-```python
+```
 python3 -m spacy download en
 ```
