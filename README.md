@@ -1,6 +1,7 @@
 # Natural-Language-Processing
 
-## Project on Golden Globes Host(s) and Awards Identification via Tweets
+## Project Description
+### Golden Globes Host(s) and Awards Identification via Tweets
 
 Tweets (2015) used in this project were retrieved if they matched the query:
 ```python
@@ -24,3 +25,15 @@ Team Members:
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
 - Yunwen Wang [@OREOmini](https://github.com/OREOmini)
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
+
+## Getting Started
+### Installation
+To install all the libraries/dependencies used in this project:
+```
+pip install -r requirements.txt
+```
+
+To download the language model used in this project:
+```
+python3 -m spacy download en
+```
