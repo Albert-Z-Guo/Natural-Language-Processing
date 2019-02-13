@@ -167,6 +167,8 @@ def merge_names(top_results, entity_freq_dict):
             # if not deleted in previous cases, cumulate frequencies to the selected entity
             if name in e and selected_entity_name in e:
                 e[selected_entity_name] += e[name]
+                # reward merging
+                e[selected_entity_name] += round(e[selected_entity_name]*1/(names.index(selected_entity_name)+1-0.88))
                 del e[name]
 
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
@@ -569,7 +571,7 @@ def get_hosts(year):
     top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
     # remove 'golden globes' from identified host names
     entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
-    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:50]
+    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:20]
     # filter for names
     top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
@@ -700,5 +702,7 @@ def pre_ceremony():
 
 # individual task testing
 if __name__ == '__main__':
-    # get_winner('2013')
-    get_presenters('2013')
+    # get_hosts('2013')
+    # get_awards('2013')
+    # get_presenters('2013')
+    get_winner('2013')
