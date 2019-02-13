@@ -630,6 +630,7 @@ def get_winner(year):
         if 'actor' in awards_reduced[key] or 'actress' in awards_reduced[key] or 'director' in awards_reduced[key]:
             top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
         top_10 = merge_names(top_results, entity_freq_dict)
+
         global award_winner_dict
         if len(top_10) != 0:
             award_winner_dict[awards[key].lower()] = top_10[0][0]
@@ -669,10 +670,13 @@ def get_presenters(year):
         top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
         top_10 = merge_names(top_results, entity_freq_dict)
 
-        if len(top_10) != 0:
-            award_presenters_dict[awards[key].lower()] = top_10[0][0]
-        else:
+        global award_presenters_dict
+        if len(top_10) == 0:
             award_presenters_dict[awards[key].lower()] = ''
+        elif len(top_10) == 1:
+            award_presenters_dict[awards[key].lower()] = top_10[0][0]
+        elif len(top_10) > 1:
+            award_presenters_dict[awards[key].lower()] = [top_10[0][0], top_10[1][0]]
 
     presenters = award_presenters_dict
     return presenters
