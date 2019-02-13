@@ -20,6 +20,7 @@ at_freq_dict = {}
 CLEANSED_DATA = []
 PREPROCESSED_FLAG = 0
 award_winner_dict = {}
+award_presenters_dict = {}
 
 
 def remove_retweet_prefix(line):
@@ -394,6 +395,135 @@ def find_award_winner(awards, awards_reduced, award_index, award_num_keywords_ma
     return entity_freq_dict
 
 
+def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords_map):
+    award = awards_reduced[award_index]
+    num_keywords_to_match = award_num_keywords_map[award_index]
+
+    # add word boundary '\b' to prevent grabbing examples like "showing" and "wonder"
+    pattern = re.compile(r'\bpresenter|\bpresent', re.IGNORECASE)
+
+    entity_dict = {}
+    num = 0
+    flag = 0
+
+    if len(award) != num_keywords_to_match:
+        flag = 1
+        for line in CLEANSED_DATA:
+            match = re.findall(pattern, line.lower())
+            weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+            num_keywords_matched = len(set(award).intersection(set(line.split())))
+            if match and num_keywords_matched >= num_keywords_to_match:
+                ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                weight *= ratio
+
+                tags = identify_entities(line)
+                for entity in tags.keys():
+                    entity_raw = entity
+                    entity = entity.strip()
+                    if len(entity) > 1:
+                        # add more weights for appropriate entity classification
+                        if tags[entity_raw] == 'PERSON':
+                            weight += 5
+                        if tags[entity_raw] == 'PERSON':
+                            weight -= 5
+                        if entity not in entity_dict:
+                            entity_dict[entity] = weight
+                        else:
+                            entity_dict[entity] += weight
+                num += 1
+    else:
+        for line in CLEANSED_DATA:
+            match = re.findall(pattern, line.lower())
+            weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+            # if line contains at least number keywords to match and pattern is found
+            num_keywords_matched = len(set(award).intersection(set(line.split())))
+            if num_keywords_matched == num_keywords_to_match and match:
+                ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                weight *= ratio
+
+                tags = identify_entities(line)
+                for entity in tags.keys():
+                    entity_raw = entity
+                    entity = entity.strip()
+                    if len(entity) > 1:
+                        # add more weights for appropriate entity classification
+                        if tags[entity_raw] == 'PERSON':
+                            weight += 5
+                        if tags[entity_raw] == 'PERSON':
+                            weight -= 5
+                        if entity not in entity_dict:
+                            entity_dict[entity] = weight
+                        else:
+                            entity_dict[entity] += weight
+                num += 1
+
+    # if no results found, recursively reducing num_keywords_to_match
+    while(num == 0 or num < 10):
+        num_keywords_to_match -= 1
+        if num_keywords_to_match == 0:
+            break
+
+        # add alternative word for 'tv'
+        if 'tv' in award and 'television' not in award:
+            award.append('television')
+        # add alternative word for 'Motion Picture'
+        if 'Motion Picture' in awards[award_index]:
+            award.append('movie')
+            award.append('motion')
+            award.append('picture')
+
+        if flag == 1:
+            for line in CLEANSED_DATA:
+                match = re.findall(pattern, line.lower())
+                weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+                num_keywords_matched = len(set(award).intersection(set(line.split())))
+                if match and num_keywords_matched >= num_keywords_to_match:
+                    ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                    weight *= ratio
+
+                    tags = identify_entities(line)
+                    for entity in tags.keys():
+                        entity_raw = entity
+                        entity = entity.strip()
+                        if len(entity) > 1:
+                            # add more weights for appropriate entity classification
+                            if tags[entity_raw] == 'PERSON':
+                                weight += 5
+                            if tags[entity_raw] == 'PERSON':
+                                weight -= 5
+                            if entity not in entity_dict:
+                                entity_dict[entity] = weight
+                            else:
+                                entity_dict[entity] += weight
+                    num += 1
+        else:
+            for line in CLEANSED_DATA:
+                match = re.findall(pattern, line.lower())
+                weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+                # if line contains at least number keywords to match and pattern is found
+                num_keywords_matched = len(set(award).intersection(set(line.split())))
+                if num_keywords_matched == num_keywords_to_match and match:
+
+                    ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                    weight *= ratio
+
+                    tags = identify_entities(line)
+                    for entity in tags.keys():
+                        entity_raw = entity
+                        entity = entity.strip()
+                        if len(entity) > 1:
+                            # add more weights for appropriate entity classification
+                            if tags[entity_raw] == 'PERSON':
+                                weight += 5
+                            if tags[entity_raw] == 'PERSON':
+                                weight -= 5
+                            if entity not in entity_dict:
+                                entity_dict[entity] = weight
+                            else:
+                                entity_dict[entity] += weight
+                    num += 1
+    return entity_dict
+
 def preprocess(year):
     start_time = time.time()
     print('preprocssing...')
@@ -522,6 +652,29 @@ def get_presenters(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    award_num_keywords_map, awards_reduced = generate_award_num_keywords_map(awards)
+
+    for key in award_num_keywords_map.keys():
+        entity_freq_dict = find_award_presenter(awards, awards_reduced, key, award_num_keywords_map)
+        top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
+        # remove 'golden globes' from identified host names
+        entity_freq_dict = remove_goldeb_globes(top_results, entity_freq_dict)
+        top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:30]
+        # filter for names if necessary
+        top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
+        top_10 = merge_names(top_results, entity_freq_dict)
+
+        if len(top_10) != 0:
+            award_presenters_dict[awards[key].lower()] = top_10[0][0]
+        else:
+            award_presenters_dict[awards[key].lower()] = ''
+
+    presenters = award_presenters_dict
     return presenters
 
 
@@ -541,6 +694,7 @@ def pre_ceremony():
     return
 
 
-# for tests
+# individual task testing
 if __name__ == '__main__':
-    get_winner('2013')
+    # get_winner('2013')
+    get_presenters('2013')
