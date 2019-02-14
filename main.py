@@ -414,32 +414,52 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
     return entity_freq_dict
 
 
-def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords_map):
+def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords_map, stop_words):
     award = awards_reduced[award_index]
     num_keywords_to_match = award_num_keywords_map[award_index]
 
     # add word boundary '\b' to prevent grabbing examples like "showing" and "wonder"
-    pattern = re.compile(r'\bpresenter|\bpresent', re.IGNORECASE)
+    pattern = re.compile(r'\bpresenter|\bpresent\b|\bpresenting\b|\bpresentador\b', re.IGNORECASE)
 
     entity_dict = {}
     num = 0
     flag = 0
 
+    # keep track of the longest match
+    max_match = 0
+    max_match_entities = []
+
+    # find target word pattern to match for sure
+    primary_target_word = check_primary_target_words(award)
+    if primary_target_word:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(primary_target_word), re.IGNORECASE)
+    # else if primary keyword is not found, match for secondary keyword
+    elif 'tv' in award:
+        target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
+    else:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
+
     if len(award) != num_keywords_to_match:
         flag = 1
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
-            weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
-            num_keywords_matched = len(set(award).intersection(set(line.split())))
-            if match and num_keywords_matched >= num_keywords_to_match:
-                ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+            match_target_word = re.findall(target_word_pattern, line.lower())
+            weight = 100 if any('presenter' in tup for tup in match) or any('presenting' in tup for tup in match) else 1
+
+            # if line contains at least number keywords to match and pattern is found
+            num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
+            if match and num_keywords_matched >= num_keywords_to_match and match_target_word:
+                ratio = num_keywords_matched**5
                 weight *= ratio
 
                 tags = identify_entities(line)
+
                 for entity in tags.keys():
                     entity_raw = entity
-                    entity = entity.strip()
-                    if len(entity) > 1:
+                    # remove stopwords if any
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                    if len(entity_split) != 0:
+                        entity = ' '.join(entity_split)
                         # add more weights for appropriate entity classification
                         if tags[entity_raw] == 'PERSON':
                             weight += 5
@@ -449,22 +469,35 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                             entity_dict[entity] = weight
                         else:
                             entity_dict[entity] += weight
+
+                # update max_match_entities
+                if num_keywords_matched > max_match:
+                    max_match = num_keywords_matched
+                    max_match_entities = []
+                    for entity in tags.keys():
+                        max_match_entities.append(entity)
                 num += 1
+
     else:
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
-            weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+            weight = 100 if any('presenter' in tup for tup in match) or any('presenting' in tup for tup in match) else 1
+
             # if line contains at least number keywords to match and pattern is found
-            num_keywords_matched = len(set(award).intersection(set(line.split())))
-            if num_keywords_matched == num_keywords_to_match and match:
-                ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+            num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
+            if match and num_keywords_matched == num_keywords_to_match:
+
+                ratio = num_keywords_matched**5
                 weight *= ratio
 
                 tags = identify_entities(line)
+
                 for entity in tags.keys():
                     entity_raw = entity
-                    entity = entity.strip()
-                    if len(entity) > 1:
+                    # remove stopwords if any
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                    if len(entity_split) != 0:
+                        entity = ' '.join(entity_split)
                         # add more weights for appropriate entity classification
                         if tags[entity_raw] == 'PERSON':
                             weight += 5
@@ -474,6 +507,13 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                             entity_dict[entity] = weight
                         else:
                             entity_dict[entity] += weight
+
+                # update max_match_entities
+                if num_keywords_matched > max_match:
+                    max_match = num_keywords_matched
+                    max_match_entities = []
+                    for entity in tags.keys():
+                        max_match_entities.append(entity)
                 num += 1
 
     # if no results found, recursively reducing num_keywords_to_match
@@ -482,29 +522,28 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
         if num_keywords_to_match == 0:
             break
 
-        # add alternative word for 'tv'
-        if 'tv' in award and 'television' not in award:
-            award.append('television')
-        # add alternative word for 'Motion Picture'
-        if 'Motion Picture' in awards[award_index]:
-            award.append('movie')
-            award.append('motion')
-            award.append('picture')
-
-        if flag == 1:
+        if len(award) != num_keywords_to_match:
             for line in CLEANSED_DATA:
                 match = re.findall(pattern, line.lower())
-                weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
-                num_keywords_matched = len(set(award).intersection(set(line.split())))
-                if match and num_keywords_matched >= num_keywords_to_match:
-                    ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                match_target_word = re.findall(target_word_pattern, line.lower())
+
+                weight = 100 if any('presenter' in tup for tup in match) or any('presenting' in tup for tup in match) else 1
+
+                # if line contains at least number keywords to match and pattern is foundnum_keywords_matched = len(set(award).intersection(set(line.lower().split())))
+                num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
+                if match and num_keywords_matched >= num_keywords_to_match and match_target_word:
+
+                    ratio = num_keywords_matched**5
                     weight *= ratio
 
                     tags = identify_entities(line)
+#
                     for entity in tags.keys():
                         entity_raw = entity
-                        entity = entity.strip()
-                        if len(entity) > 1:
+                        # remove stopwords if any
+                        entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                        if len(entity_split) != 0:
+                            entity = ' '.join(entity_split)
                             # add more weights for appropriate entity classification
                             if tags[entity_raw] == 'PERSON':
                                 weight += 5
@@ -514,23 +553,34 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                                 entity_dict[entity] = weight
                             else:
                                 entity_dict[entity] += weight
+
+                    # update max_match_entities
+                    if num_keywords_matched > max_match:
+                        max_match = num_keywords_matched
+                        max_match_entities = []
+                        for entity in tags.keys():
+                            max_match_entities.append(entity)
                     num += 1
         else:
             for line in CLEANSED_DATA:
                 match = re.findall(pattern, line.lower())
-                weight = 20 if any('presenter' in tup for tup in match) or any('presenters' in tup for tup in match) else 1
+                weight = 100 if any('presenter' in tup for tup in match) or any('presenting' in tup for tup in match) else 1
+
                 # if line contains at least number keywords to match and pattern is found
-                num_keywords_matched = len(set(award).intersection(set(line.split())))
+                num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
                 if num_keywords_matched == num_keywords_to_match and match:
 
-                    ratio = round(num_keywords_matched/(num_keywords_to_match+0.0001))
+                    ratio = num_keywords_matched**5
                     weight *= ratio
 
                     tags = identify_entities(line)
+
                     for entity in tags.keys():
                         entity_raw = entity
-                        entity = entity.strip()
-                        if len(entity) > 1:
+                        # remove stopwords if any
+                        entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                        if len(entity_split) != 0:
+                            entity = ' '.join(entity_split)
                             # add more weights for appropriate entity classification
                             if tags[entity_raw] == 'PERSON':
                                 weight += 5
@@ -540,8 +590,36 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                                 entity_dict[entity] = weight
                             else:
                                 entity_dict[entity] += weight
+
+                    # update max_match_entities
+                    if num_keywords_matched > max_match:
+                        max_match = num_keywords_matched
+                        max_match_entities = []
+                        for entity in tags.keys():
+                            max_match_entities.append(entity)
                     num += 1
+
     return entity_dict
+
+
+def generate_stopwords(awards):
+    awards_words = set()
+    for award in awards:
+        awards_words |= set(cleanse(award).split())
+    stop_words = set(stopwords.words('english'))
+    stop_words |= awards_words
+    stop_words |= {'tv'}
+    stop_words |= {'winner'}
+    stop_words |= {'congrats'}
+    stop_words |= {'congratulations'}
+    stop_words |= {'golden'}
+    stop_words |= {'globes'}
+    stop_words |= {'rt'}
+    stop_words.remove('of')
+    # remove possible names from stopwords
+    stop_words.remove('don')
+    stop_words.remove('will')
+    return stop_words
 
 
 def preprocess(year):
@@ -638,24 +716,8 @@ def get_winner(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
-    # collect stopwords
-    awards_words = set()
-    for award in awards:
-        awards_words |= set(cleanse(award).split())
-    stop_words = set(stopwords.words('english'))
-    stop_words |= awards_words
-    stop_words |= {'tv'}
-    stop_words |= {'winner'}
-    stop_words |= {'congrats'}
-    stop_words |= {'congratulations'}
-    stop_words |= {'golden'}
-    stop_words |= {'globes'}
-    stop_words |= {'rt'}
-    stop_words.remove('of')
-    # remove possible names from stopwords
-    stop_words.remove('don')
-    stop_words.remove('will')
-
+    # generate stopwords, award_num_keywords_map, and awards_reduced
+    stop_words = generate_stopwords(awards)
     award_num_keywords_map, awards_reduced = generate_award_num_keywords_map(awards)
 
     for i, award in enumerate(awards_reduced):
@@ -680,6 +742,9 @@ def get_winner(year):
             award_winner_dict[awards[key].lower()] = ''
 
     winners = award_winner_dict
+
+    import pprint
+    pprint.pprint(winners)
     return winners
 
 
@@ -698,10 +763,12 @@ def get_presenters(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
+    # generate stopwords, award_num_keywords_map, and awards_reduced
+    stop_words = generate_stopwords(awards)
     award_num_keywords_map, awards_reduced = generate_award_num_keywords_map(awards)
 
     for key in award_num_keywords_map.keys():
-        entity_freq_dict = find_award_presenter(awards, awards_reduced, key, award_num_keywords_map)
+        entity_freq_dict = find_award_presenter(awards, awards_reduced, key, award_num_keywords_map, stop_words)
         top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
         # remove 'golden globes' from identified host names
         entity_freq_dict = remove_goldeb_globes(top_results, entity_freq_dict)
@@ -719,6 +786,7 @@ def get_presenters(year):
             award_presenters_dict[awards[key].lower()] = [top_10[0][0], top_10[1][0]]
 
     presenters = award_presenters_dict
+    print(presenters)
     return presenters
 
 
