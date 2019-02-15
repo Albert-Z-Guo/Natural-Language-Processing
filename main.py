@@ -171,15 +171,15 @@ def merge_names(top_results, entity_freq_dict):
                 e[selected_entity_name] += e[name]
                 # reward merging if the difference between the first two candidates are not large
                 # e[selected_entity_name] += round(e[selected_entity_name]*1/(names.index(selected_entity_name)+1-0.88))
-                if top_results[0][1] < 2*top_results[1][1]:
-                    selected_name_i = names.index(selected_entity_name)
-                    name_i = names.index(name)
-                    if selected_name_i < 4:
-                        if name_i >= 4:
-                            # reward strength is proportional to indices' distance
-                            e[selected_entity_name] += e[name]*abs(selected_name_i - name_i)
-                        else:
-                            e[selected_entity_name] += e[name]*0.5
+                # if top_results[0][1] < 2*top_results[1][1]:
+                #     selected_name_i = names.index(selected_entity_name)
+                #     name_i = names.index(name)
+                #     if selected_name_i < 4:
+                #         if name_i >= 4:
+                #             # reward strength is proportional to indices' distance
+                #             e[selected_entity_name] += e[name]*abs(selected_name_i - name_i)*1.5
+                #         else:
+                #             e[selected_entity_name] += e[name]*0.5
                 del e[name]
 
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
@@ -218,8 +218,21 @@ def reduce(line):
     line = re.sub(pattern, 'tv', line.lower())
 
     # remove words "best", "performance", "motion", "picture", "limited", "language", "role", in", "a", "an", "any", "made", "for", "by", "b.", "award", and all punctuations
-    pattern = r'\bbest\b|\bperformance\b|\bmotion\b|\bpicture\b|\blimited\b|\blanguage\b|\brole\b|\bin\b|\ba\b|\ban\b|\bany\b|\bmade\b|\bfor\b|\bby\b|\bb\b|\baward\b|[^\w\s]'
+    # pattern = r'\bbest\b|\bperformance\b|\bmotion\b|\bpicture\b|\blimited\b|\blanguage\b|\brole\b|\bin\b|\ba\b|\ban\b|\bany\b|\bmade\b|\bfor\b|\bby\b|\bb\b|\baward\b|[^\w\s]'
+    pattern = r'\bbest\b|\bperformance\b|\blanguage\b|\brole\b|\bin\b|\ba\b|\ban\b|\bany\b|\bmade\b|\bfor\b|\bby\b|\bb\b|\baward\b|[^\w\s]'
     return re.sub(pattern, ' ', line.lower()).split()
+
+
+def describe_awards(awards, awards_reduced, award_num_keywords_map):
+    pairs = sorted(award_num_keywords_map.items(), key=lambda pair: pair[0])
+    for pair in pairs:
+        print(pair[0])
+        print(awards[pair[0]])
+        print(awards_reduced[pair[0]])
+        if pair[1] < len(awards_reduced[pair[0]]):
+            print('******')
+        print(pair) # (index, num_keywords_to_match)
+        print()
 
 
 def generate_award_num_keywords_map(awards):
@@ -262,8 +275,12 @@ def not_awards_stopwords(w, stop_words):
 
 
 def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_index, stop_words):
+    print(award_index)
+    print('Predicting for:', awards[award_index])
     award = awards_reduced[award_index]
+    print('award name reduced:', award)
     num_keywords_to_match = award_num_keywords_map[award_index]
+    print("num keywords to match:", num_keywords_to_match)
 
     # add word boundary '\b' to prevent grabbing examples like "showing" and "wonder"
     pattern = re.compile(r'\bwin|\bwon\b|\bbest\b|\bcongrat', re.IGNORECASE)
@@ -273,25 +290,25 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
     num = 0
     flag = 0
 
-    target_word_pattern = None
-    match_target_word = None
-    target_word = check_target_words(award)
+    # target_word_pattern = None
+    # match_target_word = None
+
+    # find target word pattern to match for sure
+    primary_target_word = check_primary_target_words(award)
+    if primary_target_word:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(primary_target_word), re.IGNORECASE)
+    # else if primary keyword is not found, match for secondary keyword
+    elif 'tv' in award:
+        target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
+    else:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
+
 
     # if len(award) != num_keywords_to_match (awards that have 'or' options)
     # and len(award) != 2 (for the case of ['musical', 'comedy']),
     # in addition, if target word in award, target word must be matched
-    if len(award) != num_keywords_to_match and target_word:
+    if len(award) != num_keywords_to_match:
         flag = 1
-        # find target word pattern to match for sure
-        primary_target_word = check_primary_target_words(award)
-        if primary_target_word:
-            target_word_pattern = re.compile(r'\b{0}\b'.format(primary_target_word), re.IGNORECASE)
-        # else if primary keyword is not found, match for secondary keyword
-        elif 'tv' in award:
-            target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
-        else:
-            target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
-
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
             match_target_word = re.findall(target_word_pattern, line.lower())
@@ -307,14 +324,14 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
                 for entity in tags.keys():
                     entity_raw = entity
                     # remove stopwords if any
-                    entity_split = [w for w in entity.split() if not_awards_stopwords(w, stop_words)]
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
                     if len(entity_split) != 0:
                         entity = ' '.join(entity_split)
                         # add more weights for appropriate entity classification
-                        if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
-                            weight += 5
-                        if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
-                            weight -= 5
+                        if primary_target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            weight += 10
+                        if primary_target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            weight -= 10
                         if entity not in entity_freq_dict:
                             entity_freq_dict[entity] = weight
                         else:
@@ -333,13 +350,13 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
                 for entity in tags.keys():
                     entity_raw = entity
                     # remove stopwords if any
-                    entity_split = [w for w in entity.split() if not_awards_stopwords(w, stop_words)]
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
                     if len(entity_split) != 0:
                         entity = ' '.join(entity_split)
                         # add more weights for appropriate entity classification
-                        if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                        if primary_target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                             weight += 10
-                        if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                        if primary_target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                             weight -= 10
                         if entity not in entity_freq_dict:
                             entity_freq_dict[entity] = weight
@@ -372,13 +389,13 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
                     for entity in tags.keys():
                         entity_raw = entity
                         # remove stopwords if any
-                        entity_split = [w for w in entity.split() if not_awards_stopwords(w, stop_words)]
+                        entity_split = [w for w in entity.split() if w.lower() not in stop_words]
                         if len(entity_split) != 0:
                             entity = ' '.join(entity_split)
                             # add more weights for appropriate entity classification
-                            if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            if primary_target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                                 weight += 10
-                            if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            if primary_target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                                 weight -= 10
                             if entity not in entity_freq_dict:
                                 entity_freq_dict[entity] = weight
@@ -398,13 +415,13 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
                     for entity in tags.keys():
                         entity_raw = entity
                         # remove stopwords if any
-                        entity_split = [w for w in entity.split() if not_awards_stopwords(w, stop_words)]
+                        entity_split = [w for w in entity.split() if w.lower() not in stop_words]
                         if len(entity_split) != 0:
                             entity = ' '.join(entity_split)
                             # add more weights for appropriate entity classification
-                            if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            if primary_target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                                 weight += 10
-                            if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            if primary_target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
                                 weight -= 10
                             if entity not in entity_freq_dict:
                                 entity_freq_dict[entity] = weight
@@ -415,6 +432,7 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
 
 
 def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords_map, stop_words):
+    print('Predicting for:', awards[award_index])
     award = awards_reduced[award_index]
     num_keywords_to_match = award_num_keywords_map[award_index]
 
@@ -422,6 +440,7 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
     pattern = re.compile(r'\bpresenter|\bpresent\b|\bpresenting\b|\bpresentador\b', re.IGNORECASE)
 
     entity_dict = {}
+
     num = 0
     flag = 0
 
@@ -635,14 +654,15 @@ def preprocess(year):
         data = data.sample(n=sample_size)
 
     # clean tweets
+    global CLEANSED_DATA
     for tweet in data:
         line = remove_retweet_prefix(tweet)
         line = remove_hashtag(line)
         line = remove_at(line)
         line = remove_url(line)
         line = cleanse(line)
-        global CLEANSED_DATA
         CLEANSED_DATA.append(line)
+    CLEANSED_DATA = list(set(CLEANSED_DATA))
 
     print('total preprocessing time: {0:.2f} seconds'.format(time.time() - start_time))
 
@@ -720,6 +740,8 @@ def get_winner(year):
     stop_words = generate_stopwords(awards)
     award_num_keywords_map, awards_reduced = generate_award_num_keywords_map(awards)
 
+    describe_awards(awards, awards_reduced, award_num_keywords_map)
+
     for i, award in enumerate(awards_reduced):
         if 'tv' in award:
             awards_reduced[i].append('television')
@@ -733,7 +755,13 @@ def get_winner(year):
         # filter for names if necessary
         if 'actor' in awards_reduced[key] or 'actress' in awards_reduced[key] or 'director' in awards_reduced[key]:
             top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
-        top_10 = merge_names(top_results, entity_freq_dict)
+        print('top results:')
+        print(top_results)
+        print('\ntop results after merging:')
+        # top_10 = merge_names(top_results, entity_freq_dict)
+        top_10 = top_results[:10]
+        print(top_10)
+        print()
 
         global award_winner_dict
         if len(top_10) != 0:
