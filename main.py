@@ -9,6 +9,7 @@ import pandas as pd
 import spacy
 import nltk
 from nltk.corpus import stopwords
+import gender_guesser.detector as gender
 
 nlp = spacy.load('en')
 
@@ -23,6 +24,10 @@ CLEANSED_DATA = []
 PREPROCESSED_FLAG = 0
 award_winner_dict = {}
 award_presenters_dict = {}
+
+with open('name_entities.json') as file:
+    name_entites = json.load(file)
+file.closed
 
 
 def remove_retweet_prefix(line):
@@ -677,6 +682,234 @@ def preprocess(year):
 
     print('total preprocessing time: {0:.2f} seconds'.format(time.time() - start_time))
 
+def check_entity(entity, category, percentage):
+    entities = []
+    for name in name_entites[category]:
+        if fuzz.ratio(name, entity) > percentage:
+            entities.append(name)
+    return entities
+
+def find_person_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, stop_words, recurse = False):
+    if num_keywords_to_match_min < 0:
+        return nominee_dict
+
+    if recurse:
+        if 'tv' in award_keywords and 'television' not in award_keywords:
+            award_keywords.append('television')
+            # add alternative word for 'Motion Picture'
+        if 'Motion Picture' in award and 'motion' not in award_keywords and 'movie' not in award_keywords and 'picture' not in award_keywords:
+            award_keywords.append('movie')
+            award_keywords.append('motion')
+            award_keywords.append('picture')
+        print('expanded award with more keywards', award_keywords)
+
+    gender_detector = gender.Detector()
+    if len(nominee_dict) <= 10:
+        for line in data:
+            match = re.findall(pattern, line.lower())
+            match_target_word = re.findall(target_word_pattern, line.lower()) if target_word_pattern is not None else ['']
+            num_keywords_matched = len(set(award_keywords).intersection(set(line.split())))
+
+            if match:
+                for name in name_entites['name']:
+                    if len(name) > 4 and re.search(name.lower(), line) is not None:
+                        if name not in nominee_dict:
+                            nominee_dict[name] = 10
+                        else:
+                            nominee_dict[name] += 10
+
+            if num_keywords_matched >= num_keywords_to_match_min and (match_target_word or recurse) and match:
+                weight = 5 if any('nominee' or 'nominat' or 'lost' or 'lose' in tup for tup in match) else 1
+                weight *= num_keywords_matched
+
+                tags = identify_entities(line)
+
+                for entity in tags.keys():
+                    entity_raw = entity
+                    entity = entity.strip()
+                    entity = remove_apostrophe(entity)
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                    if len(entity_split) != 0:
+                        entity = ' '.join(entity_split)
+                    if len(entity) > 3:
+                        # add more weights for appropriate entity classification
+                        if tags[entity_raw] == ['PERSON']:
+                            if 'actress' in award_keywords and gender_detector.get_gender(
+                                    entity.split()[0]) == 'female':
+                                weight += 10
+                            elif 'actor' in award_keywords and gender_detector.get_gender(entity.split()[0]) == 'male':
+                                weight += 10
+                            # weight += 5
+                        else:
+                            weight -= 10
+
+                        matched_names = check_entity(entity, 'name', 90)
+                        if len(matched_names) > 0:
+                            weight += 10
+                            for n in matched_names:
+                                if n not in nominee_dict:
+                                    nominee_dict[n] = weight
+                                else:
+                                    nominee_dict[n] += weight
+
+                        if entity not in nominee_dict:
+                            nominee_dict[entity] = weight
+                        else:
+                            nominee_dict[entity] += weight
+    if len(nominee_dict) <= 10:
+        nominee_dict = find_person_nominees(award, data, pattern, award_keywords, target_word_pattern,
+                                            num_keywords_to_match_min-1, nominee_dict, stop_words, True)
+    return nominee_dict
+
+
+def find_other_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, category, stop_words, recurse = False):
+    if num_keywords_to_match_min <= 0:
+        return nominee_dict
+
+    if recurse:
+        if 'tv' in award_keywords and 'television' not in award_keywords:
+            award_keywords.append('television')
+            # add alternative word for 'Motion Picture'
+        if 'Motion Picture' in award and 'motion' not in award_keywords and 'movie' not in award_keywords and 'picture' not in award_keywords:
+            award_keywords.append('movie')
+            award_keywords.append('motion')
+            award_keywords.append('picture')
+        print('expanded award with more keywards', award_keywords)
+
+    if len(nominee_dict) <= 10:
+        for line in data:
+            match = re.findall(pattern, line.lower())
+            match_target_word = re.findall(target_word_pattern, line.lower()) if target_word_pattern is not None else ['']
+            num_keywords_matched = len(set(award_keywords).intersection(set(line.split())))
+
+            if match:
+                for name in name_entites[category]:
+                    if len(name) > 4 and re.search(name.lower(), line) is not None:
+                        if name not in nominee_dict:
+                            nominee_dict[name] = 10
+                        else:
+                            nominee_dict[name] += 10
+
+            if num_keywords_matched >= num_keywords_to_match_min and (match_target_word or recurse) and match:
+                weight = 1
+                if any('nominee' or 'nominat' or 'lost' or 'lose' in tup for tup in match):
+                    weight = 3
+                weight *= num_keywords_matched
+
+                tags = identify_entities(line)
+
+                for entity in tags.keys():
+                    entity_raw = entity
+                    entity = entity.strip()
+                    entity = remove_apostrophe(entity)
+                    if len(entity) > 3:
+                        matched_names = check_entity(entity, category, 90)
+                        if len(matched_names) > 0:
+                            weight += 10
+                            for n in matched_names:
+                                if n not in nominee_dict:
+                                    nominee_dict[n] = 10
+                                else:
+                                    nominee_dict[n] += 10
+
+                        if entity not in nominee_dict:
+                            nominee_dict[entity] = weight
+                        else:
+                            nominee_dict[entity] += weight
+    if len(nominee_dict) <= 10:
+        nominee_dict = find_other_nominees(award, data, pattern, award_keywords, target_word_pattern,
+                                           num_keywords_to_match_min - 1, nominee_dict, category, True)
+    return nominee_dict
+
+
+def find_nominees(data, award):
+    # no nominee for cecil b. demille award
+    if award == 'cecil b. demille award':
+        return []
+
+    nominee_dict = {}
+
+    # print(name_entites['song'])
+
+    # keywords
+    pattern = re.compile("(\bwin)|(\bwon\b)|(\blost\b)|(\blose\b)|(nominat)|(nominee)", re.IGNORECASE)
+    award_keywords = reduce(award)
+    if '-' in award_keywords:
+        award_keywords.remove('-')
+    print("keywords:", award_keywords)
+    words_to_remove = ['Drama', 'Oscar', 'RT', 'best', 'ben', 'amy', 'Congrats', 'won', 'win', 'Congratulation',
+                       'Nominee', 'Bill Clinton', 'lov', 'Anne Hathaway']
+    words_to_remove = words_to_remove + award_keywords
+
+    num_keywords_to_match_min = 1 if len(award_keywords) == 1 else round(len(award_keywords) * 0.7)
+    stop_words = generate_stopwords(OFFICIAL_AWARDS_1315)
+    target_word = check_target_words(award_keywords)
+    print('target words:', target_word)
+
+    # get entity names
+    category = ''
+    if len({'actor', 'actress', 'director'}.intersection(set(award.split()))) > 0:
+        category = 'name'
+    elif len({'song'}.intersection(set(award_keywords))) > 0:
+        category = 'song'
+    elif len({'show', 'tv', 'television', 'series'}.intersection(set(award.split()))) > 0:
+        category = 'tv'
+    elif len({'motion', 'picture', 'film', 'movie'}.intersection(set(award.split()))) > 0:
+        category = 'film'
+
+    print('category:', category)
+    num = 0
+    target_word_pattern = None
+    gender_detector = gender.Detector()
+
+    # if len(award_keywords) != num_keywords_to_match and target_word:
+    # flag = 1
+    # find target word pattern to match for sure
+    primary_target_word = check_primary_target_words(award_keywords)
+    if primary_target_word:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(primary_target_word), re.IGNORECASE)
+        print("matching target word '{0}'".format(target_word))
+    # else if primary keyword is not found, match for secondary keyword
+    elif 'tv' in award_keywords:
+        target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
+        print("matching target word 'tv'")
+
+    if category == 'name':
+        nominee_dict = find_person_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min,
+                                                           {}, stop_words)
+    else:
+        nominee_dict = find_other_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, {}, category,stop_words)
+
+    # remove unwanted words
+    for word in words_to_remove:
+        for name in list(nominee_dict.keys()):
+            if re.search(word.lower(), name.lower()) or re.search(name.lower(), word.lower()) \
+                    or fuzz.ratio(name.lower(), word.lower()) > 70 or len(name) <= 3:
+                del nominee_dict[name]
+
+    # remove 'golden globes' from identified host names
+    top_results = sorted(nominee_dict.items(), key=lambda pair: pair[1], reverse=True)
+    nominee_dict = remove_goldeb_globes(top_results, nominee_dict)
+
+    top_results = sorted(nominee_dict.items(), key=lambda pair: pair[1], reverse=True)
+    print('top results:')
+    print(top_results)
+    # print('top results after merging:')
+    top_10 = top_results
+    if category == 'name':
+        top_10 = merge_names(top_results[0:20], nominee_dict)
+    # top_10 = top_results
+
+    # remove winner from name list
+    # hard code winner:
+    winner = WINNERS[award]
+    for n in top_10[:5]:
+        name = n[0]
+        if re.search(winner, name.lower()) or fuzz.ratio(name.lower(), winner) > 90:
+            top_10.remove(n)
+    res = [k[0] for k in top_10]
+
+    return res[0:4]
 
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
@@ -729,6 +962,16 @@ def get_nominees(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    nominees = {}
+
+    for award in awards:
+        nominees[award] = find_nominees(CLEANSED_DATA, award)
+
     return nominees
 
 
@@ -779,7 +1022,8 @@ def get_winner(year):
             award_winner_dict[awards[key].lower()] = ''
 
     winners = award_winner_dict
-
+    global WINNERS
+    WINNERS = winners
     import pprint
     pprint.pprint(winners)
     return winners
@@ -850,3 +1094,4 @@ if __name__ == '__main__':
     # get_awards('2013')
     # get_presenters('2013')
     get_winner('2013')
+    get_nominees('2013')
