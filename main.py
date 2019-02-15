@@ -287,9 +287,6 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
     elif 'tv' in award:
         target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
         print("matching target word 'tv'")
-    elif 'screenplay' in award:
-        target_word_pattern = re.compile(r'\b{0}\b'.format('screenplay'), re.IGNORECASE)
-        print("matching target word 'screenplay'")
     else:
         target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
         print("matching target word '{0}'".format(award[0]))
