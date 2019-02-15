@@ -294,46 +294,42 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
         target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
         print("matching target word '{0}'".format(award[0]))
 
-
-    for line in CLEANSED_DATA:
-        match = re.findall(pattern, line.lower())
-        match_target_word = re.findall(target_word_pattern, line.lower())
-
     # if len(award) != num_keywords_to_match (awards that have 'or' options)
     # and len(award) != 2 (for the case of ['musical', 'comedy']),
     # in addition, if target word in award, target word must be matched
     if len(award) != num_keywords_to_match:
         flag = 1
+        for line in CLEANSED_DATA:
+            match = re.findall(pattern, line.lower())
+            match_target_word = re.findall(target_word_pattern, line.lower())
+            # if line contains at least number keywords to match and pattern is found
+            num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
+            if (match and num_keywords_matched >= num_keywords_to_match) and match_target_word:
+                # reward longer match
+                weight = 10 if any('win' in tup for tup in match) else 1
 
-        # if line contains at least number keywords to match and pattern is found
-        num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
-        if (match and num_keywords_matched >= num_keywords_to_match) and match_target_word:
-            # reward longer match
-            weight = 10 if any('win' in tup for tup in match) else 1
+                ratio = num_keywords_matched**5
+                weight *= ratio
 
-            ratio = num_keywords_matched**5
-            weight *= ratio
+                tags = identify_entities(line, stop_words)
+                for entity in tags.keys():
+                    entity_raw = entity
 
-            tags = identify_entities(line, stop_words)
-            for entity in tags.keys():
-                entity_raw = entity
+                    # remove stopwords if any
+                    entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+                    if len(entity_split) != 0:
+                        entity = ' '.join(entity_split)
 
-                # remove stopwords if any
-                entity_split = [w for w in entity.split() if w.lower() not in stop_words]
-                if len(entity_split) != 0:
-                    entity = ' '.join(entity_split)
-
-                    # add more weights for appropriate entity classification
-                    if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
-                        weight += 10
-                    if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
-                        weight -= 10
-                    if entity not in entity_freq_dict:
-                        entity_freq_dict[entity] = weight
-                    else:
-                        entity_freq_dict[entity] += weight
-            num += 1
-
+                        # add more weights for appropriate entity classification
+                        if target_word in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            weight += 10
+                        if target_word not in ['actor', 'actress', 'director'] and tags[entity_raw] == 'PERSON':
+                            weight -= 10
+                        if entity not in entity_freq_dict:
+                            entity_freq_dict[entity] = weight
+                        else:
+                            entity_freq_dict[entity] += weight
+                num += 1
     else:
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
@@ -1102,12 +1098,15 @@ def pre_ceremony():
     # Your code here
     # install all necessary libraries
     print('installing necessary libraries loading language model used...')
+
     print('step 1: pip install -r requirements.txt')
     os.system("pip install -r requirements.txt")
+
     print('step 2: python3 -m spacy download en')
     os.system("python3 -m spacy download en")
-    print("Pre-ceremony processing complete.")
     nltk.download('stopwords')
+
+    print("Pre-ceremony processing complete.")
     return
 
 
