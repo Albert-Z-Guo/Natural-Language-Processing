@@ -21,7 +21,6 @@ Identification tasks include, but not limited to
 5. Awards Winners
 
 Team Members:
-- Yihong Hu [@Huhuhu812](https://github.com/Huhuhu812)
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
 - Yunwen Wang [@OREOmini](https://github.com/OREOmini)
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
