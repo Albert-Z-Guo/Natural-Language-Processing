@@ -276,30 +276,26 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
 
     # add word boundary '\b' to prevent grabbing examples like "showing" and "wonder"
     pattern = re.compile(r'\bwin|\bwon\b|\bbest\b|\bcongrat', re.IGNORECASE)
-
     entity_freq_dict = {}
-
     num = 0
-    flag = 0
 
     # find target word pattern to match for sure
     target_word = check_target_words(award)
     if target_word:
         target_word_pattern = re.compile(r'\b{0}\b'.format(target_word), re.IGNORECASE)
         print("matching target word '{0}'".format(target_word))
-    # else if primary keyword is not found, match for secondary keyword
+    # else if 'tv' in award, pick 'tv' as a target word
     elif 'tv' in award:
         target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
         print("matching target word 'tv'")
+    # else pick the first word in award as target word
     else:
         target_word_pattern = re.compile(r'\b{0}\b'.format(award[0]), re.IGNORECASE)
         print("matching target word '{0}'".format(award[0]))
 
     # if len(award) != num_keywords_to_match (awards that have 'or' options)
-    # and len(award) != 2 (for the case of ['musical', 'comedy']),
-    # in addition, if target word in award, target word must be matched
+    # target word must be matched
     if len(award) != num_keywords_to_match:
-        flag = 1
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
             match_target_word = re.findall(target_word_pattern, line.lower())
@@ -349,14 +345,13 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
 
     # if no results found, recursively add more keywords and reduce num_keywords_to_match
     while(num == 0 or num < 10):
-        print('no results found or too few matches!!! reduce num_keywords_to_match!!!')
-
+        print('no results found or too few matches! reduce num_keywords_to_match!')
         num_keywords_to_match -= 1
         print("num keywords to match:", num_keywords_to_match)
         if num_keywords_to_match == 0:
             break
 
-        if flag == 1:
+        if len(award) != num_keywords_to_match:
             if target_word:
                 print("matching target word '{0}'".format(target_word))
             for line in CLEANSED_DATA:
@@ -627,12 +622,15 @@ def preprocess(year):
     print('preprocssing...')
 
     df = pd.read_json(path_or_buf='gg{0}.json'.format(year))
-    data = df['text']
 
     # sample data if necessary
     sample_size = 200000
     if len(df) > sample_size:
-        data = data.sample(n=sample_size)
+        data = df['text'].sample(n=sample_size)
+        # data = df.sort_values("text", axis=0, ascending=True, inplace=False, na_position ='last').reset_index()['text']
+        # data = data[:sample_size]
+    else:
+        data = df['text']
 
     # clean tweets
     global CLEANSED_DATA
