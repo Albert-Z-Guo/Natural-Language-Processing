@@ -39,8 +39,8 @@ python3 -m spacy download en
 ```
 
 ### Test Performance
-To test the tasks' performance on 2013's data, run:
+To test the performance of tasks on 2013's data, run:
 ```
 python3 autograder 2013 [task]
 ```
-where task options are "hosts", "winner", "presenters", "awards", "nominees"
+where task options are `hosts`, `winner`, `presenters`, `awards`, `nominees`
