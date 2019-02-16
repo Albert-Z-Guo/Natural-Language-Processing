@@ -101,18 +101,19 @@ def identify_entities(text, stop_words):
     return tags
 
 
-def find_host(CLEANSED_DATA):
+def find_host(CLEANSED_DATA, awards):
+    stop_words = generate_stopwords(awards)
     pattern = re.compile(r'\bhost')
     entity_freq_dict = {}
+
     for line in CLEANSED_DATA:
         match = re.search(pattern, line.lower())
         if match:
             for entity in identify_entities(line, stop_words).keys():
-                if len(entity) > 1:
-                    if entity not in entity_freq_dict:
-                        entity_freq_dict[entity] = 1
-                    else:
-                        entity_freq_dict[entity] += 1
+                if entity not in entity_freq_dict:
+                    entity_freq_dict[entity] = 1
+                else:
+                    entity_freq_dict[entity] += 1
     return entity_freq_dict
 
 
@@ -927,8 +928,13 @@ def get_hosts(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
     print('finding hosts...')
-    entity_freq_dict = find_host(CLEANSED_DATA)
+    entity_freq_dict = find_host(CLEANSED_DATA, awards)
     top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
     # remove 'golden globes' from identified host names
     entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
