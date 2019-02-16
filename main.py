@@ -198,33 +198,66 @@ def merge_names(top_results, entity_freq_dict):
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
     return top_10
 
-
-def find_awards(data):
-    endlist = ['picture', 'television', 'drama', 'comedy', 'animated']
-    awards = {}
-    for item in data:
-        l = item.lower().split()
-        for j in endlist:
-            if 'best' in l and j in l:
-                temp1 = l.index('best')
-                temp2 = l.index(j)
-                if temp1 < temp2:
-                    l2 = ['television' if x == 'tv' else x for x in l]
-                    key1 = " ".join(l2[temp1:temp2 + 1])
-                    if key1 not in awards:
-                        awards[key1] = 1
-                    else:
-                        awards[key1] += 1
+# the functions of finding awards start
+def find_awards(data,year):
     res = []
-    for item in awards:
-        if awards.get(item) > 95:
-            l = item
-            if len(l.split()) > 3:
-                res.append(item)
-    res.sort()
-    res.append('cecil b.demille award')
-    return res
+    awards = {}
+    removelist = []
+    endlist = getEndList(year)
 
+    for item in data:
+        line = item.lower().split()
+        for endword in endlist:
+            if 'best' in line and endword in line:
+                start = line.index('best')
+                end = line.index(endword)
+                if start < end:
+                    line2 = ['television' if x == 'tv' else x for x in line]
+                    key = " ".join(line2[start:end + 1])
+                    if key not in awards:
+                        awards[key] = 1
+                    else:
+                        awards[key] += 1
+
+    for item in awards:
+        if awards.get(item) > 60:
+            line = item
+            if len(line.split()) > 3:
+                res.append(item)
+
+
+    for i in range(0, len(res) - 1):
+        for j in range(i + 1, len(res)):
+            if stringMatch(res[i], res[j]):
+                if len(res[i]) > len(res[j]):
+                    removelist.append(res[j])
+                else:
+                    removelist.append(res[i])
+
+    for item in removelist:
+        if item in res:
+            res.remove(item)
+
+    for item in res:
+        print(item)
+
+    return res[0:32]
+
+def getEndList(year):
+    if year in ['2013','2015']:
+        return ['picture', 'television', 'drama', 'film', 'musical']
+
+    return ['picture', 'television', 'drama', 'film', 'comedy']
+
+def stringMatch(a,b):
+    if len(a) > len(b):
+        if b in a:
+            return True
+        return False
+    if a in b:
+        return True
+    return False
+# the functions of finding awards end
 
 def reduce(line):
     pattern = r'\btelevision\b'
@@ -915,8 +948,8 @@ def get_awards(year):
     if PREPROCESSED_FLAG == 0:
         preprocess(year)
         PREPROCESSED_FLAG = 1
-
-    AWARDS = find_awards(CLEANSED_DATA)
+    print(type(year))
+    AWARDS = find_awards(CLEANSED_DATA,year)
     return AWARDS
 
 
@@ -1071,3 +1104,4 @@ if __name__ == '__main__':
     # get_presenters('2013')
     get_winner('2013')
     get_nominees('2013')
+    get_awards('2013')
