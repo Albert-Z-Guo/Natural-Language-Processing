@@ -303,10 +303,9 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
             # if line contains at least number keywords to match and pattern is found
             num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
             if (match and num_keywords_matched >= num_keywords_to_match) and match_target_word:
-                # reward longer match
                 weight = 10 if any('win' in tup for tup in match) else 1
-                ratio = num_keywords_matched**5
-                weight *= ratio
+                # reward longer match
+                weight *= num_keywords_matched**5
 
                 tags = identify_entities(line, stop_words)
                 for entity in tags.keys():
@@ -328,6 +327,7 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
             num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
             if match and num_keywords_matched == num_keywords_to_match:
                 weight = 10 if any('win' in tup for tup in match) else 1
+                # reward longer match
                 weight *= num_keywords_matched
 
                 tags = identify_entities(line, stop_words)
@@ -362,8 +362,8 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
                 num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
                 if num_keywords_matched >= num_keywords_to_match and match and match_target_word:
                     weight = 10 if any('win' in tup for tup in match) else 1
-                    ratio = num_keywords_matched**5
-                    weight *= ratio
+                    # reward longer match
+                    weight *= num_keywords_matched**5
 
                     tags = identify_entities(line, stop_words)
                     for entity in tags.keys():
@@ -594,6 +594,7 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
 def generate_stopwords(awards):
     stop_words = set()
+
     awards_words = set()
     for award in awards:
         awards_words |= set(cleanse(award).split())
@@ -627,8 +628,6 @@ def preprocess(year):
     sample_size = 200000
     if len(df) > sample_size:
         data = df['text'].sample(n=sample_size)
-        # data = df.sort_values("text", axis=0, ascending=True, inplace=False, na_position ='last').reset_index()['text']
-        # data = data[:sample_size]
     else:
         data = df['text']
 
@@ -646,8 +645,8 @@ def preprocess(year):
     print(len(CLEANSED_DATA))
     CLEANSED_DATA = list(set(CLEANSED_DATA))
     print(len(CLEANSED_DATA))
-
     print('total preprocessing time: {0:.2f} seconds'.format(time.time() - start_time))
+
 
 def check_entity(entity, category, percentage):
     entities = []
@@ -655,6 +654,7 @@ def check_entity(entity, category, percentage):
         if fuzz.ratio(name, entity) > percentage:
             entities.append(name)
     return entities
+
 
 def find_person_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, stop_words, recurse = False):
     if num_keywords_to_match_min < 0:
@@ -877,6 +877,7 @@ def find_nominees(data, award):
     res = [k[0] for k in top_10]
 
     return res[0:4]
+
 
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
