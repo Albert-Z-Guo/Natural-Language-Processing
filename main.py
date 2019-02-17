@@ -79,8 +79,8 @@ def remove_apostrophe(text):
 
 
 def cleanse(line):
-    # replace everything to ' ' except whitespace, alphanumeric character, apostrophe, hashtag
-    return re.sub(r'[^\w\s\'#]', ' ', line)
+    # replace everything to ' ' except whitespace, alphanumeric character, apostrophe, hashtag, and period
+    return re.sub(r'[^\w\s\'#.]', ' ', line)
     # consider keeping '-'
 
 
