@@ -906,12 +906,12 @@ def sentiment_analysis(year):
     except:
         get_presenters(year)
 
-    try:
-        with open('nominees_{0}.pickle'.format(year), 'rb') as file:
-            global award_nominees_dict
-            award_nominees_dict = pickle.load(file)
-    except:
-        get_nominees(year)
+    # try:
+    #     with open('nominees_{0}.pickle'.format(year), 'rb') as file:
+    #         global award_nominees_dict
+    #         award_nominees_dict = pickle.load(file)
+    # except:
+    #     get_nominees(year)
 
     if year == '2013' or '2015':
         awards = OFFICIAL_AWARDS_1315
