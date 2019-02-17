@@ -2,6 +2,7 @@ import os
 import re
 import time
 import json
+import pickle
 
 
 from fuzzywuzzy import fuzz
@@ -140,11 +141,8 @@ def filter_people_names(pair_list, entity_freq_dict):
 
 def filter_category_names(pair_list, entity_freq_dict):
     try:
-        people_names = set()
-        with open('people_names.txt', 'r') as file:
-            for row in file:
-                people_names |= {row.strip()}
-        file.closed
+        with open('people_names.pickle', 'rb') as file:
+            people_names = pickle.load(file)
     except:
         return pair_list, entity_freq_dict
     if len(people_names) > 0:
@@ -200,17 +198,6 @@ def merge_names(top_results, entity_freq_dict):
             # if not deleted in previous cases, cumulate frequencies to the selected entity
             if name in e and selected_entity_name in e:
                 e[selected_entity_name] += e[name]
-                # reward merging if the difference between the first two candidates are not large
-                # e[selected_entity_name] += round(e[selected_entity_name]*1/(names.index(selected_entity_name)+1-0.88))
-                # if top_results[0][1] < 2*top_results[1][1]:
-                #     selected_name_i = names.index(selected_entity_name)
-                #     name_i = names.index(name)
-                #     if selected_name_i < 4:
-                #         if name_i >= 4:
-                #             # reward strength is proportional to indices' distance
-                #             e[selected_entity_name] += e[name]*abs(selected_name_i - name_i)*1.5
-                #         else:
-                #             e[selected_entity_name] += e[name]*0.5
                 del e[name]
 
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
@@ -261,11 +248,13 @@ def find_awards(data,year):
 
     return res[0:32]
 
+
 def getEndList(year):
     if year in ['2013','2015']:
         return ['picture', 'television', 'drama', 'film', 'musical']
 
     return ['picture', 'television', 'drama', 'film', 'comedy']
+
 
 def stringMatch(a,b):
     if len(a) > len(b):
@@ -373,7 +362,6 @@ def find_award_winner(awards, award_num_keywords_map, awards_reduced, award_inde
             num_keywords_matched = len(set(award).intersection(set(line.lower().split())))
             if match and num_keywords_matched == num_keywords_to_match:
                 weight = 10 if any('win' in tup for tup in match) else 1
-                # reward longer match
                 weight *= num_keywords_matched
 
                 tags = identify_entities(line, stop_words)
