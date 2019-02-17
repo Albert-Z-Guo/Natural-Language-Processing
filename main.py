@@ -923,6 +923,17 @@ def sentiment_analysis(year):
     for name in HOSTS:
         for name_split in name.lower().split():
             stop_words |= {name_split}
+    for name in award_winner_dict.values():
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
+    for list in award_presenters_dict.values():
+        for name in list:
+            for name_split in name.lower().split():
+                stop_words |= {name_split}
+    # for list in award_nominees_dict.values():
+    #     for name in list:
+    #         for name_split in name.lower().split():
+    #             stop_words |= {name_split}
 
     print('hosts:', HOSTS)
     for host in HOSTS:
