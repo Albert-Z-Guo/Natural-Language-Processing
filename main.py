@@ -126,7 +126,7 @@ def remove_goldeb_globes(top_results, entity_freq_dict):
 
 
 # we also consider dropping all lower cases examples or examples that contain digit(s), which are not names
-def filter_names(pair_list, entity_freq_dict):
+def filter_people_names(pair_list, entity_freq_dict):
     filtered_results = []
     for pair in pair_list:
         string = ''.join(pair[0].split())
@@ -136,6 +136,25 @@ def filter_names(pair_list, entity_freq_dict):
             if pair[0] in entity_freq_dict:
                 del entity_freq_dict[pair[0]]
     return filtered_results, entity_freq_dict
+
+
+def filter_category_names(pair_list, entity_freq_dict):
+    try:
+        people_names = set()
+        with open('people_names.txt', 'r') as file:
+            for row in file:
+                people_names |= {row.strip()}
+        file.closed
+    except:
+        return pair_list, entity_freq_dict
+    if len(people_names) > 0:
+        filtered_pair_list = []
+        for pair in pair_list:
+            if pair[0] in people_names and pair[0] in entity_freq_dict:
+                del entity_freq_dict[pair[0]]
+            else:
+                filtered_pair_list.append(pair)
+        return filtered_pair_list, entity_freq_dict
 
 
 def merge_names(top_results, entity_freq_dict):
@@ -154,27 +173,25 @@ def merge_names(top_results, entity_freq_dict):
                 cluster.append(i)
         # if multiple names are identified in one cluster
         if len(cluster) > 1:
-            names_clusters.append(cluster)
+            find = 0
+            # check if element of a new cluster is already added to a cluster
+            for existing_cluster in names_clusters:
+                for element in cluster:
+                    if element in existing_cluster:
+                        find += 1
+            if find == 0:
+                names_clusters.append(cluster)
 
     # find names clusters that should merge
     # ['Amy Poehler', 'Amy', 'Amy Poelher']
     # ['Tina', 'Tina Fey']
-
-    # sort clusters
-    names_clusters.sort()
-    # sort within each cluster
-    names_clusters = ['|'.join(sorted(cluster)) for cluster in names_clusters]
-    # remove overlaps
-    names_clusters_reduced = [line.split('|') for line in list(set(names_clusters))]
-    # sort by length from shortest to longest (merge from the shortest)
-    names_clusters_reduced.sort(key=len)
 
     # weighted frequency of an entity is defined by its frequency multiplied by its string length
     def weighted_freq(element):
         return entity_freq_dict[element] * len(element)
 
     e = entity_freq_dict.copy()
-    for cluster in names_clusters_reduced:
+    for cluster in names_clusters:
         # select the entity name with highest weighted frequency
         selected_entity_name = max(cluster, key=weighted_freq)
         cluster.remove(selected_entity_name)
@@ -503,7 +520,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
             for line in CLEANSED_DATA:
                 match = re.findall(pattern, line.lower())
                 match_target_word = re.findall(target_word_pattern, line.lower())
-
                 weight = 100 if any('presenter' in tup for tup in match) or any('presenting' in tup for tup in match) else 1
 
                 # if line contains at least number keywords to match and pattern is foundnum_keywords_matched = len(set(award).intersection(set(line.lower().split())))
@@ -587,7 +603,7 @@ def preprocess(year):
 
     # sample data if necessary
     sample_size = 200000
-    if len(df) > sample_size:
+    if len(df['text']) > sample_size:
         data = df['text'].sample(n=sample_size)
     else:
         data = df['text']
@@ -866,7 +882,7 @@ def get_hosts(year):
     entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
     top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:20]
     # filter for names
-    top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
+    top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
     HOSTS = [name[0] for name in top_10][:2]
     return HOSTS
@@ -939,7 +955,11 @@ def get_winner(year):
         top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:30]
         # filter for names if necessary
         if 'actor' in awards_reduced[key] or 'actress' in awards_reduced[key] or 'director' in awards_reduced[key]:
-            top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
+            top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
+
+        if not any(word in awards_reduced[key] for word in ['actor', 'actress', 'director', 'cecil']):
+            top_results, entity_freq_dict = filter_category_names(top_results, entity_freq_dict)
+
         print('top results:')
         print(top_results)
         print('\ntop results after merging:')
@@ -987,7 +1007,7 @@ def get_presenters(year):
         entity_freq_dict = remove_goldeb_globes(top_results, entity_freq_dict)
         top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:30]
         # filter for names if necessary
-        top_results, entity_freq_dict = filter_names(top_results, entity_freq_dict)
+        top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
         print('top results:')
         print(top_results)
         print('\ntop results after merging:')
@@ -1016,14 +1036,17 @@ def pre_ceremony():
     Do NOT change the name of this function or what it returns.'''
     # Your code here
     # install all necessary libraries
-    print('installing necessary libraries and loading language model used...')
+    # print('setting up the environment...')
+    #
+    # print('step 1: installing all necessary libraries...')
+    # os.system("pip install -r requirements.txt")
+    #
+    # print('step 2: downloading language model used...')
+    # os.system("python3 -m spacy download en")
+    # nltk.download('stopwords')
 
-    print('step 1: pip install -r requirements.txt')
-    os.system("pip install -r requirements.txt")
-
-    print('step 2: python3 -m spacy download en')
-    os.system("python3 -m spacy download en")
-    nltk.download('stopwords')
+    print('step 3: querying external database...')
+    os.system("python3 scrape_people_names.py")
 
     print("Pre-ceremony processing complete.")
     return
@@ -1032,8 +1055,8 @@ def pre_ceremony():
 # individual task testing
 if __name__ == '__main__':
     # get_hosts('2013')
-    # get_awards('2013')
     # get_presenters('2013')
-    get_winner('2013')
-    get_nominees('2013')
-    get_awards('2013')
+    # get_winner('2013')
+    # get_nominees('2013')
+    # get_awards('2013')
+    pre_ceremony()
