@@ -23,6 +23,7 @@ at_freq_dict = {}
 # global variables to be later updated and read for autograder
 CLEANSED_DATA = []
 PREPROCESSED_FLAG = 0
+HOSTS = []
 award_winner_dict = {}
 award_presenters_dict = {}
 
@@ -886,6 +887,13 @@ def find_sentiments(subject, stop_words):
 
 def sentiment_analysis(year):
     try:
+        with open('hosts_{0}.pickle'.format(year), 'rb') as file:
+            global HOSTS
+            HOSTS = pickle.load(file)
+    except:
+        get_hosts(year)
+
+    try:
         with open('winners_{0}.pickle'.format(year), 'rb') as file:
             global award_winner_dict
             award_winner_dict = pickle.load(file)
@@ -905,20 +913,31 @@ def sentiment_analysis(year):
         awards = OFFICIAL_AWARDS_1819
 
     stop_words = generate_stopwords(awards, year)
+    # make sure names are not used as sentiments
+    for name in HOSTS:
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
 
-    for award in awards:
+    print('hosts:', HOSTS)
+    for host in HOSTS:
+        print('most common sentiment used to:', host)
+        print(find_sentiments(host, stop_words))
+    print()
+
+    # for award in awards:
         # winner = award_winner_dict[award]
         # print(award)
         # print('winner:', winner)
         # print('most common sentiment used:')
         # print(find_sentiments(winner, stop_words))
+        # print()
 
-        presenters = award_presenters_dict[award]
-        print('presenter(s):', presenters)
-        for presenter in presenters:
-            print('most common sentiment used to:', presenter)
-            print(find_sentiments(presenter, stop_words))
-        print()
+        # presenters = award_presenters_dict[award]
+        # print('presenter(s):', presenters)
+        # for presenter in presenters:
+        #     print('most common sentiment used to:', presenter)
+        #     print(find_sentiments(presenter, stop_words))
+        # print()
 
 
 # the following global variable and functions are adapted from gg_api.py from autograder
@@ -949,7 +968,13 @@ def get_hosts(year):
     # filter for names
     top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
+
+    global HOSTS
     HOSTS = [name[0] for name in top_10][:2]
+
+    with open('hosts_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(HOSTS, file, protocol=pickle.HIGHEST_PROTOCOL)
+
     return HOSTS
 
 
@@ -982,7 +1007,6 @@ def get_nominees(year):
         awards = OFFICIAL_AWARDS_1819
 
     nominees = {}
-
     for award in awards:
         nominees[award] = find_nominees(CLEANSED_DATA, award)
 
