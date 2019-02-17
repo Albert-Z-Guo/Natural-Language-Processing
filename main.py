@@ -204,6 +204,7 @@ def merge_names(top_results, entity_freq_dict):
     return top_10
 
 # the functions of finding awards start
+
 def find_awards(data,year):
     res = []
     awards = {}
@@ -230,7 +231,6 @@ def find_awards(data,year):
             if len(line.split()) > 3:
                 res.append(item)
 
-
     for i in range(0, len(res) - 1):
         for j in range(i + 1, len(res)):
             if stringMatch(res[i], res[j]):
@@ -243,10 +243,15 @@ def find_awards(data,year):
         if item in res:
             res.remove(item)
 
-    for item in res:
-        print(item)
-
-    return res[0:32]
+    for i in range(0,len(res)):
+        if 'comedy'in res[i] and 'musical' not in res[i]:
+            res[i]=res[i].replace('comedy','comedy or musical')
+        elif 'musical'in res[i] and 'comedy' not in res[i]:
+            res[i]=res[i].replace('musical','comedy or musical')
+        else:
+            continue
+            
+    print(res)
 
 
 def getEndList(year):
@@ -264,6 +269,7 @@ def stringMatch(a,b):
     if a in b:
         return True
     return False
+
 # the functions of finding awards end
 
 def reduce(line):
