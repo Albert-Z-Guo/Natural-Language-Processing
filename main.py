@@ -892,6 +892,13 @@ def sentiment_analysis(year):
     except:
         get_winner(year)
 
+    try:
+        with open('presenters_{0}.pickle'.format(year), 'rb') as file:
+            global award_presenters_dict
+            award_presenters_dict = pickle.load(file)
+    except:
+        get_presenters(year)
+
     if year == '2013' or '2015':
         awards = OFFICIAL_AWARDS_1315
     elif year == '2018' or '2019':
@@ -900,10 +907,17 @@ def sentiment_analysis(year):
     stop_words = generate_stopwords(awards, year)
 
     for award in awards:
-        winner = award_winner_dict[award]
-        print('{0} winner: {1}'.format(award, winner))
-        print('most common sentiment used:')
-        print(find_sentiments(winner, stop_words))
+        # winner = award_winner_dict[award]
+        # print(award)
+        # print('winner:', winner)
+        # print('most common sentiment used:')
+        # print(find_sentiments(winner, stop_words))
+
+        presenters = award_presenters_dict[award]
+        print('presenter(s):', presenters)
+        for presenter in presenters:
+            print('most common sentiment used to:', presenter)
+            print(find_sentiments(presenter, stop_words))
         print()
 
 
