@@ -10,9 +10,10 @@ people_names = []
 file = open("people_names.txt", encoding="utf-8", mode="w")
 
 # scraping from IMDb
-# Birth Date between 1960-01-01 and 1993-12-31, Males/Females
-for page in range(1, 36953, 100):
-    url = "https://www.imdb.com/search/name?birth_date=1960-01-01,1993-12-31&gender=male,female&count=100&start={0}&ref_=rlm".format(page)
+# Birth Date between 1955-01-01 and 1993-12-31, Males/Females (Sorted by Popularity Ascending)
+# there are in total 205,045 names, we pick 20504, which are the top 10%
+for page in range(1, 20504, 100):
+    url = "https://www.imdb.com/search/name?birth_date=1955-01-01,1993-12-31&gender=male,female&count=100&start={0}&ref_=rlm".format(page)
     response = get(url)
     elapsed_time = time() - start_time
     print('scraped {0} people... elapsed time: {1:.2f} seconds'.format(page, elapsed_time))
