@@ -8,8 +8,6 @@ import pickle
 from fuzzywuzzy import fuzz
 import pandas as pd
 import spacy
-import nltk
-from nltk.corpus import stopwords
 import gender_guesser.detector as gender
 
 nlp = spacy.load('en')
@@ -26,6 +24,7 @@ PREPROCESSED_FLAG = 0
 HOSTS = []
 award_winner_dict = {}
 award_presenters_dict = {}
+award_nominees_dict = {}
 
 with open('name_entities.json') as file:
     name_entites = json.load(file)
@@ -907,6 +906,13 @@ def sentiment_analysis(year):
     except:
         get_presenters(year)
 
+    try:
+        with open('nominees_{0}.pickle'.format(year), 'rb') as file:
+            global award_nominees_dict
+            award_nominees_dict = pickle.load(file)
+    except:
+        get_nominees(year)
+
     if year == '2013' or '2015':
         awards = OFFICIAL_AWARDS_1315
     elif year == '2018' or '2019':
@@ -924,19 +930,26 @@ def sentiment_analysis(year):
         print(find_sentiments(host, stop_words))
     print()
 
-    # for award in awards:
-        # winner = award_winner_dict[award]
-        # print(award)
-        # print('winner:', winner)
-        # print('most common sentiment used:')
-        # print(find_sentiments(winner, stop_words))
-        # print()
+    for award in awards:
+        winner = award_winner_dict[award]
+        print(award)
+        print('winner:', winner)
+        print('most common sentiment used:')
+        print(find_sentiments(winner, stop_words))
+        print()
 
-        # presenters = award_presenters_dict[award]
-        # print('presenter(s):', presenters)
-        # for presenter in presenters:
-        #     print('most common sentiment used to:', presenter)
-        #     print(find_sentiments(presenter, stop_words))
+        presenters = award_presenters_dict[award]
+        print('presenter(s):', presenters)
+        for presenter in presenters:
+            print('most common sentiment used to:', presenter)
+            print(find_sentiments(presenter, stop_words))
+        print()
+
+        # nominees = award_nominees_dict[award]
+        # print('nominees:', nominees)
+        # for nominee in nominees:
+        #     print('most common sentiment used to:', nominee)
+        #     print(find_sentiments(nominee, stop_words))
         # print()
 
 
@@ -1006,10 +1019,14 @@ def get_nominees(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
-    nominees = {}
+    global award_nominees_dict
     for award in awards:
-        nominees[award] = find_nominees(CLEANSED_DATA, award)
+        award_nominees_dict[award] = find_nominees(CLEANSED_DATA, award)
 
+    with open('nominees_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(award_nominees_dict, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    nominees = award_nominees_dict
     return nominees
 
 
@@ -1063,12 +1080,13 @@ def get_winner(year):
         else:
             award_winner_dict[awards[key].lower()] = ''
 
-    winners = award_winner_dict
     with open('winners_{0}.pickle'.format(year), 'wb') as file:
-        pickle.dump(winners, file, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(award_winner_dict, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     for item in award_winner_dict.items():
         print(item)
+
+    winners = award_winner_dict
     return winners
 
 
@@ -1131,18 +1149,19 @@ def pre_ceremony():
     Do NOT change the name of this function or what it returns.'''
     # Your code here
     # install all necessary libraries
-    # print('setting up the environment...')
-    #
-    # print('step 1: installing all necessary libraries...')
-    # os.system("pip install -r requirements.txt")
-    #
-    # print('step 2: downloading language model used...')
-    # os.system("python3 -m spacy download en")
-    # nltk.download('stopwords')
+    print('setting up the environment...')
 
-    print('step 3: querying external database...')
+    print('step 1: installing all necessary libraries...')
+    os.system("pip install -r requirements.txt")
+
+    print('\nstep 2: downloading language model used...')
+    os.system("python3 -m spacy download en")
+
+    print('\nstep 3: querying external database...')
     os.system("python3 scrape_people_names.py")
 
+    print("\nnote that for addition tasks, please refer to 'extra_analysis' method")
+    print('this project is completed by 3 students of Group 16')
     print("Pre-ceremony processing complete.")
     return
 
