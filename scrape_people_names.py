@@ -1,3 +1,4 @@
+import pickle
 from time import time
 from warnings import warn
 
@@ -6,8 +7,7 @@ from requests import get
 
 
 start_time = time()
-people_names = []
-file = open("people_names.txt", encoding="utf-8", mode="w")
+people_names = set()
 
 # scraping from IMDb
 # Birth Date between 1955-01-01 and 1993-12-31, Males/Females (Sorted by Popularity Ascending)
@@ -23,10 +23,11 @@ for page in range(1, 20504, 100):
         warn('scraped {0} people... Status code: {}'.format(page, response.status_code))
 
     html_soup = BeautifulSoup(response.text, 'html.parser')
-    actor_containers: ResultSet = html_soup.find_all('div', class_='lister-item mode-detail')
+    containers: ResultSet = html_soup.find_all('div', class_='lister-item mode-detail')
 
-    for container in actor_containers:
+    for container in containers:
         name = container.h3.a.text.strip()
-        people_names.append(name)
-        file.write(name + '\n')
-file.closed
+        people_names |= {name}
+
+with open('people_names.pickle', 'wb') as file:
+    pickle.dump(people_names, file, protocol=pickle.HIGHEST_PROTOCOL)
