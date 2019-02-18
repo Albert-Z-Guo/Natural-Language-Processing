@@ -155,7 +155,7 @@ def filter_category_names(pair_list, entity_freq_dict):
         return filtered_pair_list, entity_freq_dict
 
 
-def merge_names(top_results, entity_freq_dict):
+def merge_names(top_results, entity_freq_dict, top_num = 10):
     names = [pair[0] for pair in top_results]
     names_clusters = []
     for name in names:
@@ -200,7 +200,7 @@ def merge_names(top_results, entity_freq_dict):
                 e[selected_entity_name] += e[name]
                 del e[name]
 
-    top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
+    top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:top_num]
     return top_10
 
 
@@ -1002,66 +1002,6 @@ def output_reesults(year):
     additional_analysis(year)
 
 
-def get_name_to_reduce(nominees):
-    names_clusters = []
-    names = list(nominees.keys())
-
-    for name in names:
-        # each name starts as a cluster
-        cluster = [name]
-        names_to_reduce = names[:]
-        names_to_reduce.remove(name)
-
-        # one vs. all comparisons
-        for i in names_to_reduce:
-            ratio = fuzz.ratio(name.lower(), i.lower())
-            # if similarity is larger than 75 or one name is contained in the other name
-            if ratio > 75 or re.search(name, i, flags=re.IGNORECASE) or re.search(i, name, flags=re.IGNORECASE):
-                cluster.append(i)
-
-        # if multiple names are identified in one cluster
-        if len(cluster) > 1:
-            names_clusters.append(cluster)
-
-    #     print(cluster)
-
-
-    # sort clusters
-    names_clusters.sort()
-    # sort within each cluster
-    names_clusters = ['|'.join(sorted(cluster)) for cluster in names_clusters]
-    # remove overlaps
-    names_clusters_reduced = [line.split('|') for line in list(set(names_clusters))]
-    # sort by length from shortest to longest (merge from the shortest)
-    names_clusters_reduced.sort(key=len)
-#     print('\nnames clusters to merge:')
-#     pprint.pprint(names_clusters_reduced)
-#     print('\n')
-    return names_clusters_reduced
-
-def reduce_names(nominees):
-    reduced_nominees = nominees.copy()
-    names_clusters_reduced = get_name_to_reduce(nominees)
-
-    def weighted_freq(element):
-        if element in reduced_nominees:
-            return abs(reduced_nominees[element]) * len(element)
-        else:
-            return 0
-
-    for cluster in names_clusters_reduced:
-        # select the longest entity name
-        selected_entity_name = max(cluster, key=weighted_freq)
-        cluster.remove(selected_entity_name)
-        # for names to be merged to the selected entity name
-        for name in cluster:
-            # if not deleted in previous cases, cumulate frequencies to the selected entity
-            if name in reduced_nominees and selected_entity_name in reduced_nominees:
-                reduced_nominees[selected_entity_name] += reduced_nominees[name]
-                del reduced_nominees[name]
-    return reduced_nominees
-
-
 def get_polarity(line):
     blob = TextBlob(line)
     for sentence in blob.sentences:
@@ -1089,9 +1029,9 @@ def red_carpet_analysis(year):
                         continue
                     if p < -0.1:
                         if name in neg_dict:
-                            neg_dict[name] += p
+                            neg_dict[name] += -1 * p
                         else:
-                            neg_dict[name] = p
+                            neg_dict[name] = -1 * p
                     if p > 0.1:
                         if name in pos_dict:
                             pos_dict[name] += p
@@ -1107,21 +1047,23 @@ def red_carpet_analysis(year):
         if len(name) < 5 or len(name) > 17:
             del neg_dict[name]
 
-    pos_dict = reduce_names(pos_dict)
-    neg_dict = reduce_names(neg_dict)
-
     def get_sorted_names(nominees, f):
         sorted_nominees = sorted(nominees.items(), key=lambda e: e[1], reverse=f)
         names = [pair[0] for pair in sorted_nominees]
         return names
 
-    sorted_neg = get_sorted_names(pos_dict, True)
-    sorted_pos = get_sorted_names(neg_dict, False)
+    # print(sorted(pos_dict.items(), key=lambda e: e[1], reverse=True))
+    sorted_pos = merge_names(sorted(pos_dict.items(), key=lambda e: e[1], reverse=True), pos_dict, 500)
+    sorted_neg = merge_names(sorted(neg_dict.items(), key=lambda e: e[1], reverse=True), neg_dict, 500)
+
+    sorted_pos = [k[0] for k in sorted_pos]
+    sorted_neg = [k[0] for k in sorted_neg]
 
     print("\nTop five best dressed:")
     print(sorted_pos[:5])
     print("\nTop five worst dressed:")
     print(sorted_neg[:5])
+
 
     contro_dict = {}
     for name in sorted_pos:

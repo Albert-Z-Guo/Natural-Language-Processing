@@ -39,3 +39,5 @@ with open('film_names.json', 'w') as f:
     json.dump(film_names, f)
     print('write name data')
 f.close()
+end = time()
+print('total scraping film names time: {0:.2f} seconds'.format(end - start_time))
