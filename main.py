@@ -1036,8 +1036,6 @@ def get_joke(CLEANSED_DATA,stop_words):
 
 
 def get_humor(year):
-    '''Hosts is a list of one or more strings. Do NOT change the name
-    of this function or what it returns.'''
     global PREPROCESSED_FLAG
     if PREPROCESSED_FLAG == 0:
         preprocess(year)
@@ -1059,12 +1057,12 @@ def get_humor(year):
     HUMORS = [name[0] for name in top_10][:2]
 
     JOKES = get_joke(CLEANSED_DATA,stop_words)
-    print('Best jokes on ' + year)
+    print('Best jokes in ' + year)
     for item in JOKES:
         print(item)
-    print('Best jokers on ' + year)
+    print('Best jokers in ' + year)
     print(HUMORS)
-    return HUMORS,JOKES
+    return HUMORS, JOKES
 # the functions of finding humor people and jokes end
 
 # the following global variable and functions are adapted from gg_api.py from autograder
