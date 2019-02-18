@@ -888,6 +888,59 @@ def find_sentiments(subject, stop_words):
 
 
 def sentiment_analysis(year):
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    stop_words = generate_stopwords(awards, year)
+    # make sure names are not used as sentiments
+    for name in HOSTS:
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
+    for name in award_winner_dict.values():
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
+    for list in award_presenters_dict.values():
+        for name in list:
+            for name_split in name.lower().split():
+                stop_words |= {name_split}
+    for list in award_nominees_dict.values():
+        for name in list:
+            for name_split in name.lower().split():
+                stop_words |= {name_split}
+
+    print('hosts:', HOSTS)
+    for host in HOSTS:
+        print('most common sentiment used to:', host)
+        print(find_sentiments(host, stop_words))
+    print()
+
+    for award in awards:
+        print('award:', award)
+
+        winner = award_winner_dict[award]
+        print('winner:', winner)
+        print('most common sentiment used:')
+        print(find_sentiments(winner, stop_words))
+        print()
+
+        presenters = award_presenters_dict[award]
+        print('presenter(s):', presenters)
+        for presenter in presenters:
+            print('most common sentiment used to:', presenter)
+            print(find_sentiments(presenter, stop_words))
+        print()
+
+        nominees = award_nominees_dict[award]
+        print('nominees:', nominees)
+        for nominee in nominees:
+            print('most common sentiment used to:', nominee)
+            print(find_sentiments(nominee, stop_words))
+        print()
+
+
+def output_reesults(year):
     try:
         with open('hosts_{0}.pickle'.format(year), 'rb') as file:
             global HOSTS
@@ -921,51 +974,19 @@ def sentiment_analysis(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
-    stop_words = generate_stopwords(awards, year)
-    # make sure names are not used as sentiments
-    for name in HOSTS:
-        for name_split in name.lower().split():
-            stop_words |= {name_split}
-    for name in award_winner_dict.values():
-        for name_split in name.lower().split():
-            stop_words |= {name_split}
-    for list in award_presenters_dict.values():
-        for name in list:
-            for name_split in name.lower().split():
-                stop_words |= {name_split}
-    for list in award_nominees_dict.values():
-        for name in list:
-            for name_split in name.lower().split():
-                stop_words |= {name_split}
-
-    # print('hosts:', HOSTS)
-    # for host in HOSTS:
-    #     print('most common sentiment used to:', host)
-    #     print(find_sentiments(host, stop_words))
-    # print()
+    print('Golden Globes {0} Host(s) and Awards Identification via Tweets'.format(year))
+    print('hosts:', HOSTS)
 
     for award in awards:
-        print(award)
-
-        # winner = award_winner_dict[award]
-        # print('winner:', winner)
-        # print('most common sentiment used:')
-        # print(find_sentiments(winner, stop_words))
-        # print()
-        #
-        # presenters = award_presenters_dict[award]
-        # print('presenter(s):', presenters)
-        # for presenter in presenters:
-        #     print('most common sentiment used to:', presenter)
-        #     print(find_sentiments(presenter, stop_words))
-        # print()
-
+        print('\naward:', award)
+        presenters = award_presenters_dict[award]
+        print('presenter(s):', presenters)
+        winner = award_winner_dict[award]
+        print('winner:', winner)
         nominees = award_nominees_dict[award]
         print('nominees:', nominees)
-        for nominee in nominees:
-            print('most common sentiment used to:', nominee)
-            print(find_sentiments(nominee, stop_words))
-        print()
+
+    additional_analysis(year)
 
 
 def get_name_to_reduce(nominees):
@@ -1434,13 +1455,13 @@ def additional_analysis(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
-    print('---humor analysis---')
+    print('\n---humor analysis---')
     get_humor(year)
 
-    print('---sentiment analysis---')
+    print('\n---sentiment analysis---')
     sentiment_analysis(year)
 
-    print('---red carpet dressing analysis---')
+    print('\n---red carpet dressing analysis---')
     red_carpet_analysis(year)
 
 
@@ -1452,4 +1473,4 @@ if __name__ == '__main__':
     # get_nominees('2013')
     # get_awards('2013')
     # pre_ceremony()
-    additional_analysis('2013')
+    output_reesults('2013')
