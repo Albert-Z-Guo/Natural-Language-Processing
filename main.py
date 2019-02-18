@@ -8,6 +8,8 @@ import pickle
 from fuzzywuzzy import fuzz
 import pandas as pd
 import spacy
+import nltk
+from nltk.corpus import stopwords
 import gender_guesser.detector as gender
 
 from textblob import TextBlob
@@ -28,7 +30,6 @@ HOSTS = []
 award_winner_dict = {}
 award_presenters_dict = {}
 award_nominees_dict = {}
-
 
 
 def remove_retweet_prefix(line):
@@ -180,7 +181,7 @@ def merge_names(top_results, entity_freq_dict):
             if find == 0:
                 names_clusters.append(cluster)
 
-    # find names clusters that should merge
+    # merge names clusters
     # ['Amy Poehler', 'Amy', 'Amy Poelher']
     # ['Tina', 'Tina Fey']
 
@@ -202,6 +203,7 @@ def merge_names(top_results, entity_freq_dict):
 
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
     return top_10
+
 
 # the functions of finding awards start
 def find_awards(data,year):
@@ -230,7 +232,6 @@ def find_awards(data,year):
             if len(line.split()) > 3:
                 res.append(item)
 
-
     for i in range(0, len(res) - 1):
         for j in range(i + 1, len(res)):
             if stringMatch(res[i], res[j]):
@@ -250,7 +251,7 @@ def find_awards(data,year):
 
 
 def getEndList(year):
-    if year in ['2013','2015']:
+    if year in ['2013', '2015']:
         return ['picture', 'television', 'drama', 'film', 'musical']
 
     return ['picture', 'television', 'drama', 'film', 'comedy']
@@ -472,7 +473,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                     for entity in tags.keys():
                         max_match_entities.append(entity)
                 num += 1
-
     else:
         for line in CLEANSED_DATA:
             match = re.findall(pattern, line.lower())
@@ -1138,6 +1138,106 @@ def red_carpet_analysis(year):
     print(contro_dict[:5])
 
 
+# the functions of finding humor people and jokes start
+humor_keywords = ['haha', 'lol', 'hh', '233', 'funny', 'joke', 'hilarious', 'comedian', 'best joke', 'hysterical']
+
+
+def isHumor(text):
+    for x in humor_keywords:
+        if text.find(x) != -1:
+            return True
+    return False
+
+
+def find_humor(CLEANSED_DATA, awards, year):
+    stop_words = generate_stopwords(awards, year)
+    entity_freq_dict = {}
+
+    for line in CLEANSED_DATA:
+        match = isHumor(line)
+        if match:
+            for entity in identify_entities(line, stop_words).keys():
+                if entity not in entity_freq_dict:
+                    entity_freq_dict[entity] = 1
+                else:
+                    entity_freq_dict[entity] += 1
+    return entity_freq_dict,stop_words
+
+
+def get_joke(CLEANSED_DATA,stop_words):
+    humordata = {}
+    jokes = []
+    k = 10
+    index = 1
+    sign = 0
+    temp_joke = []
+
+    for item in CLEANSED_DATA:
+        line = item.lower()
+        for key in humor_keywords:
+            if key in line:
+                tokens = [w for w in line.split() if not w in stop_words]
+                for joke in nltk.ngrams(tokens, k):
+                    if joke in humordata:
+                        humordata[joke] += 1
+                    else:
+                        humordata[joke] = 1
+    Dict = sorted(humordata.items(), key=lambda entry: entry[1], reverse=True)
+
+    for i in range (0, len(Dict) - 1):
+        if sign == 0:
+            index = 1
+            if len(temp_joke) != 0:
+                joke_soace = ''
+                for item in temp_joke:
+                    joke_soace += item + ' '
+                jokes.append(joke_soace)
+            temp_joke = []
+        if sign == 1:
+            index = 0
+        if index == 1:
+            for key in Dict[i][0]:
+                temp_joke.append(key)
+            sign = 1
+            index = 0
+        for j in range (1, k):
+            if Dict[i][0][j] != Dict[i + 1][0][j - 1] or Dict[i + 1][1] < 5:
+                sign = 0
+        if sign == 1:
+             temp_joke.append(Dict[i + 1][0][k - 1])
+
+    return jokes[0: 5]
+
+
+def get_humor(year):
+    global PREPROCESSED_FLAG
+    if PREPROCESSED_FLAG == 0:
+        preprocess(year)
+        PREPROCESSED_FLAG = 1
+
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    entity_freq_dict,stop_words = find_humor(CLEANSED_DATA, awards, year)
+    top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
+    # remove 'golden globes' from identified names
+    entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
+    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:20]
+    # filter for names
+    top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
+    top_10 = merge_names(top_results, entity_freq_dict)
+    HUMORS = [name[0] for name in top_10][:2]
+
+    JOKES = get_joke(CLEANSED_DATA,stop_words)
+    print('Best jokes in ' + year)
+    for item in JOKES:
+        print(item)
+    print('Best jokers in ' + year)
+    print(HUMORS)
+    return HUMORS, JOKES
+# the functions of finding humor people and jokes end
 
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
@@ -1366,8 +1466,13 @@ def extra_analysis(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
-    # sentiment_analysis(year)
+    sentiment_analysis(year)
     red_carpet_analysis(year)
+    print('---humor analysis---')
+    get_humor(year)
+    # print('---sentiment analysis---')
+    # sentiment_analysis(year)
+
 
 # individual task testing
 if __name__ == '__main__':
