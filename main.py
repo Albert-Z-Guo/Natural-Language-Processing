@@ -143,16 +143,19 @@ def filter_category_names(pair_list, entity_freq_dict):
     try:
         with open('people_names.pickle', 'rb') as file:
             people_names = pickle.load(file)
+
+        if len(people_names) > 0:
+            filtered_pair_list = []
+            for pair in pair_list:
+                if pair[0] in people_names and pair[0] in entity_freq_dict:
+                    del entity_freq_dict[pair[0]]
+                else:
+                    filtered_pair_list.append(pair)
+            return filtered_pair_list, entity_freq_dict
     except:
+        print("'people_names.pkl' is not found...")
+        print("make sure you have run 'pre_ceremony()' before running tasks")
         return pair_list, entity_freq_dict
-    if len(people_names) > 0:
-        filtered_pair_list = []
-        for pair in pair_list:
-            if pair[0] in people_names and pair[0] in entity_freq_dict:
-                del entity_freq_dict[pair[0]]
-            else:
-                filtered_pair_list.append(pair)
-        return filtered_pair_list, entity_freq_dict
 
 
 def merge_names(top_results, entity_freq_dict, top_num = 10):
