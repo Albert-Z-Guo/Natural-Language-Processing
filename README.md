@@ -27,15 +27,24 @@ Team Members:
 
 ## Getting Started
 ### Installation
-To install all the libraries/dependencies used in this project:
+To install all the libraries/dependencies and prepare data used in this project, run
 ```
 pip install -r requirements.txt
 ```
-
-To download the language model used in this project:
+To download the spaCy language model used in this project, run
 ```
 python3 -m spacy download en
 ```
+To download NLTK package used, run
+```
+nltk.download('punkt')
+```
+To retrieve external data used, run
+```
+python3 scrape_people_names.py
+python3 scrape_film_names.py
+```
+
 
 ### Performance Evaluation
 To evaluate the performance of tasks on 2013's data, run:
