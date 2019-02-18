@@ -10,7 +10,7 @@ import pandas as pd
 import spacy
 import nltk
 from nltk.corpus import stopwords
-#import gender_guesser.detector as gender
+import gender_guesser.detector as gender
 
 nlp = spacy.load('en')
 
@@ -23,8 +23,10 @@ at_freq_dict = {}
 # global variables to be later updated and read for autograder
 CLEANSED_DATA = []
 PREPROCESSED_FLAG = 0
+HOSTS = []
 award_winner_dict = {}
 award_presenters_dict = {}
+award_nominees_dict = {}
 
 with open('name_entities.json') as file:
     name_entites = json.load(file)
@@ -203,7 +205,6 @@ def merge_names(top_results, entity_freq_dict):
     return top_10
 
 # the functions of finding awards start
-
 def find_awards(data,year):
     res = []
     awards = {}
@@ -230,6 +231,7 @@ def find_awards(data,year):
             if len(line.split()) > 3:
                 res.append(item)
 
+
     for i in range(0, len(res) - 1):
         for j in range(i + 1, len(res)):
             if stringMatch(res[i], res[j]):
@@ -242,15 +244,10 @@ def find_awards(data,year):
         if item in res:
             res.remove(item)
 
-    for i in range(0,len(res)):
-        if 'comedy'in res[i] and 'musical' not in res[i]:
-            res[i]=res[i].replace('comedy','comedy or musical')
-        elif 'musical'in res[i] and 'comedy' not in res[i]:
-            res[i]=res[i].replace('musical','comedy or musical')
-        else:
-            continue
-            
-    print(res)
+    for item in res:
+        print(item)
+
+    return res[0:32]
 
 
 def getEndList(year):
@@ -268,7 +265,6 @@ def stringMatch(a,b):
     if a in b:
         return True
     return False
-
 # the functions of finding awards end
 
 def reduce(line):
@@ -435,7 +431,7 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
     # add word boundary '\b' to prevent grabbing examples like "showing" and "wonder"
     pattern = re.compile(r'\bpresenter|\bpresent\b|\bpresenting\b|\bpresentador\b', re.IGNORECASE)
-    entity_dict = {}
+    entity_freq_dict = {}
     num = 0
 
     # keep track of the longest match
@@ -443,9 +439,9 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
     max_match_entities = []
 
     # find target word pattern to match for sure
-    primary_target_word = check_primary_target_words(award)
-    if primary_target_word:
-        target_word_pattern = re.compile(r'\b{0}\b'.format(primary_target_word), re.IGNORECASE)
+    target_words = check_target_words(award)
+    if target_words:
+        target_word_pattern = re.compile(r'\b{0}\b'.format(target_words), re.IGNORECASE)
     # else if primary keyword is not found, match for secondary keyword
     elif 'tv' in award:
         target_word_pattern = re.compile(r'\b{0}\b'.format('tv'), re.IGNORECASE)
@@ -465,10 +461,10 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
                 tags = identify_entities(line, stop_words)
                 for entity in tags.keys():
-                    if entity not in entity_dict:
-                        entity_dict[entity] = weight
+                    if entity not in entity_freq_dict:
+                        entity_freq_dict[entity] = weight
                     else:
-                        entity_dict[entity] += weight
+                        entity_freq_dict[entity] += weight
 
                 # update max_match_entities
                 if num_keywords_matched > max_match:
@@ -490,10 +486,10 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
                 tags = identify_entities(line, stop_words)
                 for entity in tags.keys():
-                    if entity not in entity_dict:
-                        entity_dict[entity] = weight
+                    if entity not in entity_freq_dict:
+                        entity_freq_dict[entity] = weight
                     else:
-                        entity_dict[entity] += weight
+                        entity_freq_dict[entity] += weight
 
                 # update max_match_entities
                 if num_keywords_matched > max_match:
@@ -522,10 +518,10 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
                     tags = identify_entities(line, stop_words)
                     for entity in tags.keys():
-                        if entity not in entity_dict:
-                            entity_dict[entity] = weight
+                        if entity not in entity_freq_dict:
+                            entity_freq_dict[entity] = weight
                         else:
-                            entity_dict[entity] += weight
+                            entity_freq_dict[entity] += weight
 
                     # update max_match_entities
                     if num_keywords_matched > max_match:
@@ -546,10 +542,10 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
 
                     tags = identify_entities(line, stop_words)
                     for entity in tags.keys():
-                        if entity not in entity_dict:
-                            entity_dict[entity] = weight
+                        if entity not in entity_freq_dict:
+                            entity_freq_dict[entity] = weight
                         else:
-                            entity_dict[entity] += weight
+                            entity_freq_dict[entity] += weight
 
                     # update max_match_entities
                     if num_keywords_matched > max_match:
@@ -558,7 +554,7 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                         for entity in tags.keys():
                             max_match_entities.append(entity)
                     num += 1
-    return entity_dict
+    return entity_freq_dict
 
 
 def generate_stopwords(awards, year):
@@ -849,6 +845,126 @@ def find_nominees(data, award):
     return res[0:4]
 
 
+def identify_entities_tag(text, stop_words):
+    tags = {}
+    for ent in nlp(text):
+        entity = ent.text.strip()
+        if entity not in tags and len(entity) > 1:
+            # remove stopwords
+            entity_split = [w for w in entity.split() if w.lower() not in stop_words]
+            if len(entity_split) != 0:
+                entity = ' '.join(entity_split)
+                if (len(entity.split()) == 1 and entity.lower() == 'the') or len(entity) == 1:
+                    pass
+                else:
+                    tags[entity]=[ent.tag_]
+    return tags
+
+
+def find_sentiments(subject, stop_words):
+    pattern = re.compile(r'\b{0}\b'.format(subject), re.IGNORECASE)
+    num = 0
+    sentiment_freq_dict = {}
+
+    for line in CLEANSED_DATA:
+        match = re.search(pattern, line.lower())
+        if match:
+            tags = identify_entities_tag(line, stop_words)
+            for entity in tags.keys():
+                if tags[entity][0] == 'JJ':
+                    if entity not in sentiment_freq_dict:
+                        sentiment_freq_dict[entity] = 1
+                    else:
+                        sentiment_freq_dict[entity] += 1
+            num += 1
+            if num == 500:
+                break
+
+    top_sentiments = sorted(sentiment_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:3]
+    top_sentiments = [pair[0] for pair in top_sentiments]
+    return top_sentiments
+
+
+def sentiment_analysis(year):
+    try:
+        with open('hosts_{0}.pickle'.format(year), 'rb') as file:
+            global HOSTS
+            HOSTS = pickle.load(file)
+    except:
+        get_hosts(year)
+
+    try:
+        with open('winners_{0}.pickle'.format(year), 'rb') as file:
+            global award_winner_dict
+            award_winner_dict = pickle.load(file)
+    except:
+        get_winner(year)
+
+    try:
+        with open('presenters_{0}.pickle'.format(year), 'rb') as file:
+            global award_presenters_dict
+            award_presenters_dict = pickle.load(file)
+    except:
+        get_presenters(year)
+
+    # try:
+    #     with open('nominees_{0}.pickle'.format(year), 'rb') as file:
+    #         global award_nominees_dict
+    #         award_nominees_dict = pickle.load(file)
+    # except:
+    #     get_nominees(year)
+
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    stop_words = generate_stopwords(awards, year)
+    # make sure names are not used as sentiments
+    for name in HOSTS:
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
+    for name in award_winner_dict.values():
+        for name_split in name.lower().split():
+            stop_words |= {name_split}
+    for list in award_presenters_dict.values():
+        for name in list:
+            for name_split in name.lower().split():
+                stop_words |= {name_split}
+    # for list in award_nominees_dict.values():
+    #     for name in list:
+    #         for name_split in name.lower().split():
+    #             stop_words |= {name_split}
+
+    print('hosts:', HOSTS)
+    for host in HOSTS:
+        print('most common sentiment used to:', host)
+        print(find_sentiments(host, stop_words))
+    print()
+
+    for award in awards:
+        winner = award_winner_dict[award]
+        print(award)
+        print('winner:', winner)
+        print('most common sentiment used:')
+        print(find_sentiments(winner, stop_words))
+        print()
+
+        presenters = award_presenters_dict[award]
+        print('presenter(s):', presenters)
+        for presenter in presenters:
+            print('most common sentiment used to:', presenter)
+            print(find_sentiments(presenter, stop_words))
+        print()
+
+        # nominees = award_nominees_dict[award]
+        # print('nominees:', nominees)
+        # for nominee in nominees:
+        #     print('most common sentiment used to:', nominee)
+        #     print(find_sentiments(nominee, stop_words))
+        # print()
+
+
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
 
@@ -877,7 +993,13 @@ def get_hosts(year):
     # filter for names
     top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
     top_10 = merge_names(top_results, entity_freq_dict)
+
+    global HOSTS
     HOSTS = [name[0] for name in top_10][:2]
+
+    with open('hosts_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(HOSTS, file, protocol=pickle.HIGHEST_PROTOCOL)
+
     return HOSTS
 
 
@@ -909,11 +1031,14 @@ def get_nominees(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
-    nominees = {}
-
+    global award_nominees_dict
     for award in awards:
-        nominees[award] = find_nominees(CLEANSED_DATA, award)
+        award_nominees_dict[award] = find_nominees(CLEANSED_DATA, award)
 
+    with open('nominees_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(award_nominees_dict, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    nominees = award_nominees_dict
     return nominees
 
 
@@ -967,10 +1092,13 @@ def get_winner(year):
         else:
             award_winner_dict[awards[key].lower()] = ''
 
-    winners = award_winner_dict
+    with open('winners_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(award_winner_dict, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     for item in award_winner_dict.items():
         print(item)
+
+    winners = award_winner_dict
     return winners
 
 
@@ -1009,13 +1137,17 @@ def get_presenters(year):
 
         global award_presenters_dict
         if len(top_10) == 0:
-            award_presenters_dict[awards[key].lower()] = ''
+            award_presenters_dict[awards[key].lower()] = ['none found']
         elif len(top_10) == 1:
-            award_presenters_dict[awards[key].lower()] = top_10[0][0]
+            award_presenters_dict[awards[key].lower()] = [top_10[0][0]]
+        elif top_10[0][1] > 10*top_10[1][1]:
+            award_presenters_dict[awards[key].lower()] = [top_10[0][0]]
         elif len(top_10) > 1:
             award_presenters_dict[awards[key].lower()] = [top_10[0][0], top_10[1][0]]
 
     presenters = award_presenters_dict
+    with open('presenters_{0}.pickle'.format(year), 'wb') as file:
+        pickle.dump(presenters, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     for item in award_presenters_dict.items():
         print(item)
@@ -1029,18 +1161,19 @@ def pre_ceremony():
     Do NOT change the name of this function or what it returns.'''
     # Your code here
     # install all necessary libraries
-    # print('setting up the environment...')
-    #
-    # print('step 1: installing all necessary libraries...')
-    # os.system("pip install -r requirements.txt")
-    #
-    # print('step 2: downloading language model used...')
-    # os.system("python3 -m spacy download en")
-    # nltk.download('stopwords')
+    print('setting up the environment...')
 
-    print('step 3: querying external database...')
+    print('step 1: installing all necessary libraries...')
+    os.system("pip install -r requirements.txt")
+
+    print('\nstep 2: downloading language model used...')
+    os.system("python3 -m spacy download en")
+
+    print('\nstep 3: querying external database...')
     os.system("python3 scrape_people_names.py")
 
+    print("\nnote that for addition tasks, please refer to 'extra_analysis' method")
+    print('this project is completed by 3 students of Group 16')
     print("Pre-ceremony processing complete.")
     return
 
@@ -1145,6 +1278,14 @@ def get_humor(year):
 
 # the functions of finding humor people and jokes end
 
+def extra_analysis(year):
+    global PREPROCESSED_FLAG
+    if PREPROCESSED_FLAG == 0:
+        preprocess(year)
+        PREPROCESSED_FLAG = 1
+
+    sentiment_analysis(year)
+
 # individual task testing
 if __name__ == '__main__':
     # get_hosts('2013')
@@ -1153,5 +1294,5 @@ if __name__ == '__main__':
     # get_nominees('2013')
     # get_awards('2013')
     # get_humor('2013')
-    pre_ceremony()
-
+    # pre_ceremony()
+    extra_analysis('2013')
