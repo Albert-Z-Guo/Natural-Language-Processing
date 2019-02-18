@@ -208,11 +208,27 @@ def merge_names(top_results, entity_freq_dict, top_num = 10):
 
 
 # the functions of finding awards start
-def find_awards(data,year):
+def find_awards(year):
+    # read data
+    df = pd.read_json(path_or_buf='gg' + year + '.json')
+    rawdata = df['text']
+    # sample data if necessary
+    sample_size = 200000
+    if len(df) > sample_size:
+        rawdata = rawdata.sample(n=sample_size)
+    # clean tweets
+    data = []
+    for tweet in rawdata:
+        line = remove_hashtag(tweet)
+        line = remove_at(line)
+        line = remove_url(line)
+        line = re.sub(r'[^\w\s\'#@]', ' ', line)
+        data.append(line)
+
     res = []
     awards = {}
     removelist = []
-    endlist = getEndList(year)
+    endlist = get_endList(year)
 
     for item in data:
         line = item.lower().split()
@@ -234,9 +250,10 @@ def find_awards(data,year):
             if len(line.split()) > 3:
                 res.append(item)
 
+
     for i in range(0, len(res) - 1):
         for j in range(i + 1, len(res)):
-            if stringMatch(res[i], res[j]):
+            if string_match(res[i], res[j]):
                 if len(res[i]) > len(res[j]):
                     removelist.append(res[j])
                 else:
@@ -246,20 +263,25 @@ def find_awards(data,year):
         if item in res:
             res.remove(item)
 
-    for item in res:
-        print(item)
+    for i in range(0,len(res)):
+        if 'comedy'in res[i] and 'musical' not in res[i]:
+            res[i]=res[i].replace('comedy','comedy or musical')
+        elif 'musical'in res[i] and 'comedy' not in res[i]:
+            res[i]=res[i].replace('musical','comedy or musical')
+        else:
+            continue
+            
+    print(res)
+    return res[0:30]
 
-    return res[0:32]
 
-
-def getEndList(year):
+def get_endList(year):
     if year in ['2013', '2015']:
         return ['picture', 'television', 'drama', 'film', 'musical']
 
     return ['picture', 'television', 'drama', 'film', 'comedy']
 
-
-def stringMatch(a,b):
+def string_match(a,b):
     if len(a) > len(b):
         if b in a:
             return True
@@ -1225,12 +1247,11 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    global PREPROCESSED_FLAG
-    if PREPROCESSED_FLAG == 0:
-        preprocess(year)
-        PREPROCESSED_FLAG = 1
-    print(type(year))
-    AWARDS = find_awards(CLEANSED_DATA,year)
+    # global PREPROCESSED_FLAG
+    # if PREPROCESSED_FLAG == 0:
+    #     preprocess(year)
+    #     PREPROCESSED_FLAG = 1
+    AWARDS = find_awards(year)
     return AWARDS
 
 
