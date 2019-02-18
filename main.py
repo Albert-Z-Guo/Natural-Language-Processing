@@ -1205,7 +1205,6 @@ def get_joke(CLEANSED_DATA,stop_words):
                 sign = 0
         if sign == 1:
              temp_joke.append(Dict[i + 1][0][k - 1])
-
     return jokes[0: 5]
 
 
@@ -1220,7 +1219,7 @@ def get_humor(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
-    entity_freq_dict,stop_words = find_humor(CLEANSED_DATA, awards, year)
+    entity_freq_dict, stop_words = find_humor(CLEANSED_DATA, awards, year)
     top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
     # remove 'golden globes' from identified names
     entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
@@ -1230,11 +1229,11 @@ def get_humor(year):
     top_10 = merge_names(top_results, entity_freq_dict)
     HUMORS = [name[0] for name in top_10][:2]
 
-    JOKES = get_joke(CLEANSED_DATA,stop_words)
-    print('Best jokes in ' + year)
+    JOKES = get_joke(CLEANSED_DATA, stop_words)
+    print('Best jokes in ' + year + ':')
     for item in JOKES:
         print(item)
-    print('Best jokers in ' + year)
+    print('\nBest jokers in ' + year + ':')
     print(HUMORS)
     return HUMORS, JOKES
 # the functions of finding humor people and jokes end
