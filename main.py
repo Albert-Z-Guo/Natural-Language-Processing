@@ -181,7 +181,7 @@ def merge_names(top_results, entity_freq_dict):
             if find == 0:
                 names_clusters.append(cluster)
 
-    # find names clusters that should merge
+    # merge names clusters
     # ['Amy Poehler', 'Amy', 'Amy Poelher']
     # ['Tina', 'Tina Fey']
 
@@ -203,6 +203,7 @@ def merge_names(top_results, entity_freq_dict):
 
     top_10 = sorted(e.items(), key=lambda pair: pair[1], reverse=True)[:10]
     return top_10
+
 
 # the functions of finding awards start
 def find_awards(data,year):
@@ -230,7 +231,6 @@ def find_awards(data,year):
             line = item
             if len(line.split()) > 3:
                 res.append(item)
-
 
     for i in range(0, len(res) - 1):
         for j in range(i + 1, len(res)):
@@ -1178,8 +1178,7 @@ def pre_ceremony():
     return
 
 # the functions of finding humor people and jokes start
-
-humor_keywords = ['haha', 'lol','hh','233','funny','joke','hilarious','comedian', 'best joke', 'hysterical']
+humor_keywords = ['haha', 'lol', 'hh', '233', 'funny', 'joke', 'hilarious', 'comedian', 'best joke', 'hysterical']
 
 def isHumor(text):
     for x in humor_keywords:
@@ -1245,6 +1244,7 @@ def get_joke(CLEANSED_DATA,stop_words):
 
     return jokes[0: 5]
 
+
 def get_humor(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
@@ -1275,7 +1275,6 @@ def get_humor(year):
     print('Best jokers on ' + year)
     print(HUMORS)
     return HUMORS,JOKES
-
 # the functions of finding humor people and jokes end
 
 def extra_analysis(year):
@@ -1284,7 +1283,10 @@ def extra_analysis(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
-    sentiment_analysis(year)
+    print('---humor analysis---')
+    get_humor(year)
+    # print('---sentiment analysis---')
+    # sentiment_analysis(year)
 
 # individual task testing
 if __name__ == '__main__':
@@ -1293,6 +1295,5 @@ if __name__ == '__main__':
     # get_winner('2013')
     # get_nominees('2013')
     # get_awards('2013')
-    # get_humor('2013')
     # pre_ceremony()
     extra_analysis('2013')
