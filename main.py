@@ -1390,13 +1390,13 @@ def pre_ceremony():
     print('step 1: installing all necessary libraries...')
     os.system('pip install -r requirements.txt')
 
-    print('\nstep 2: downloading language model used...')
+    print('\nstep 2: downloading spaCy language model used...')
     os.system('python3 -m spacy download en')
 
     print('\nstep 3: downloading NLTK package...')
     os.system("nltk.download('punkt')")
 
-    print('\nstep 4: querying external database...')
+    print('\nstep 4: querying external data...')
     print('expected loading time: < 10 minutes')
     os.system('python3 scrape_people_names.py')
     os.system('python3 scrape_film_names.py')
@@ -1425,10 +1425,11 @@ def additional_analysis(year):
 
 # individual task testing
 if __name__ == '__main__':
-    # get_hosts('2013')
-    # get_presenters('2013')
-    # get_winner('2013')
-    # get_nominees('2013')
-    # get_awards('2013')
     # pre_ceremony()
-    output_reesults('2013')
+    year = '2013'
+    # get_hosts(year)
+    # get_presenters(year)
+    # get_winner(year)
+    # get_nominees(year)
+    # get_awards(year)
+    output_reesults(year)
