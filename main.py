@@ -5,15 +5,14 @@ import json
 import pickle
 
 
-from fuzzywuzzy import fuzz
-import pandas as pd
-import spacy
 import nltk
 from nltk.corpus import stopwords
+import spacy
+import pandas as pd
+from fuzzywuzzy import fuzz
+from textblob import TextBlob
 import gender_guesser.detector as gender
 
-from textblob import TextBlob
-# import nltk
 
 nlp = spacy.load('en')
 
@@ -434,10 +433,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
     entity_freq_dict = {}
     num = 0
 
-    # keep track of the longest match
-    max_match = 0
-    max_match_entities = []
-
     # find target word pattern to match for sure
     target_words = check_target_words(award)
     if target_words:
@@ -465,13 +460,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                         entity_freq_dict[entity] = weight
                     else:
                         entity_freq_dict[entity] += weight
-
-                # update max_match_entities
-                if num_keywords_matched > max_match:
-                    max_match = num_keywords_matched
-                    max_match_entities = []
-                    for entity in tags.keys():
-                        max_match_entities.append(entity)
                 num += 1
     else:
         for line in CLEANSED_DATA:
@@ -489,13 +477,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                         entity_freq_dict[entity] = weight
                     else:
                         entity_freq_dict[entity] += weight
-
-                # update max_match_entities
-                if num_keywords_matched > max_match:
-                    max_match = num_keywords_matched
-                    max_match_entities = []
-                    for entity in tags.keys():
-                        max_match_entities.append(entity)
                 num += 1
 
     # if no results found, recursively reducing num_keywords_to_match
@@ -521,13 +502,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                             entity_freq_dict[entity] = weight
                         else:
                             entity_freq_dict[entity] += weight
-
-                    # update max_match_entities
-                    if num_keywords_matched > max_match:
-                        max_match = num_keywords_matched
-                        max_match_entities = []
-                        for entity in tags.keys():
-                            max_match_entities.append(entity)
                     num += 1
         else:
             for line in CLEANSED_DATA:
@@ -545,13 +519,6 @@ def find_award_presenter(awards, awards_reduced, award_index, award_num_keywords
                             entity_freq_dict[entity] = weight
                         else:
                             entity_freq_dict[entity] += weight
-
-                    # update max_match_entities
-                    if num_keywords_matched > max_match:
-                        max_match = num_keywords_matched
-                        max_match_entities = []
-                        for entity in tags.keys():
-                            max_match_entities.append(entity)
                     num += 1
     return entity_freq_dict
 
@@ -607,9 +574,7 @@ def preprocess(year):
         CLEANSED_DATA.append(line)
 
     # remove redundancies after processing retweets
-    print(len(CLEANSED_DATA))
     CLEANSED_DATA = list(set(CLEANSED_DATA))
-    print(len(CLEANSED_DATA))
     print('total preprocessing time: {0:.2f} seconds'.format(time.time() - start_time))
 
 
@@ -944,12 +909,12 @@ def sentiment_analysis(year):
     except:
         get_presenters(year)
 
-    # try:
-    #     with open('nominees_{0}.pickle'.format(year), 'rb') as file:
-    #         global award_nominees_dict
-    #         award_nominees_dict = pickle.load(file)
-    # except:
-    #     get_nominees(year)
+    try:
+        with open('nominees_{0}.pickle'.format(year), 'rb') as file:
+            global award_nominees_dict
+            award_nominees_dict = pickle.load(file)
+    except:
+        get_nominees(year)
 
     if year == '2013' or '2015':
         awards = OFFICIAL_AWARDS_1315
@@ -968,38 +933,40 @@ def sentiment_analysis(year):
         for name in list:
             for name_split in name.lower().split():
                 stop_words |= {name_split}
-    # for list in award_nominees_dict.values():
-    #     for name in list:
-    #         for name_split in name.lower().split():
-    #             stop_words |= {name_split}
+    for list in award_nominees_dict.values():
+        for name in list:
+            for name_split in name.lower().split():
+                stop_words |= {name_split}
 
-    print('hosts:', HOSTS)
-    for host in HOSTS:
-        print('most common sentiment used to:', host)
-        print(find_sentiments(host, stop_words))
-    print()
+    # print('hosts:', HOSTS)
+    # for host in HOSTS:
+    #     print('most common sentiment used to:', host)
+    #     print(find_sentiments(host, stop_words))
+    # print()
 
     for award in awards:
-        winner = award_winner_dict[award]
         print(award)
-        print('winner:', winner)
-        print('most common sentiment used:')
-        print(find_sentiments(winner, stop_words))
-        print()
 
-        presenters = award_presenters_dict[award]
-        print('presenter(s):', presenters)
-        for presenter in presenters:
-            print('most common sentiment used to:', presenter)
-            print(find_sentiments(presenter, stop_words))
-        print()
-
-        # nominees = award_nominees_dict[award]
-        # print('nominees:', nominees)
-        # for nominee in nominees:
-        #     print('most common sentiment used to:', nominee)
-        #     print(find_sentiments(nominee, stop_words))
+        # winner = award_winner_dict[award]
+        # print('winner:', winner)
+        # print('most common sentiment used:')
+        # print(find_sentiments(winner, stop_words))
         # print()
+        #
+        # presenters = award_presenters_dict[award]
+        # print('presenter(s):', presenters)
+        # for presenter in presenters:
+        #     print('most common sentiment used to:', presenter)
+        #     print(find_sentiments(presenter, stop_words))
+        # print()
+
+        nominees = award_nominees_dict[award]
+        print('nominees:', nominees)
+        for nominee in nominees:
+            print('most common sentiment used to:', nominee)
+            print(find_sentiments(nominee, stop_words))
+        print()
+
 
 def get_name_to_reduce(nominees):
     names_clusters = []
@@ -1064,13 +1031,11 @@ def reduce_names(nominees):
 def get_polarity(line):
     blob = TextBlob(line)
     for sentence in blob.sentences:
-#         print(sentence.sentiment.polarity)
         return float(sentence.sentiment.polarity)
 
 
 def red_carpet_analysis(year):
     pattern = re.compile("(dress)|(wear)|(outfit)|(suit)|(cloth)", re.IGNORECASE)
-    # pattern1 = re.compile("(\saward\s)|(\sbest\s)", re.IGNORECASE)
     neg_dict = {}
     pos_dict = {}
 
@@ -1093,7 +1058,6 @@ def red_carpet_analysis(year):
                             neg_dict[name] += p
                         else:
                             neg_dict[name] = p
-
                     if p > 0.1:
                         if name in pos_dict:
                             pos_dict[name] += p
@@ -1130,11 +1094,11 @@ def red_carpet_analysis(year):
         if name in sorted_neg:
             if name in contro_dict:
                 contro_dict[name] += sorted_neg.index(name) + sorted_pos.index(name)
-            else :
+            else:
                 contro_dict[name] = sorted_neg.index(name) + sorted_pos.index(name)
 
     contro_dict = get_sorted_names(contro_dict, False)
-    print("\nTop five most controversial dressed:")
+    print("\n\nTop five most controversial dressed:")
     print(contro_dict[:5])
 
 
@@ -1445,21 +1409,26 @@ def pre_ceremony():
     print('setting up the environment...')
 
     print('step 1: installing all necessary libraries...')
-    os.system("pip install -r requirements.txt")
+    os.system('pip install -r requirements.txt')
 
     print('\nstep 2: downloading language model used...')
-    os.system("python3 -m spacy download en")
+    os.system('python3 -m spacy download en')
 
-    print('\nstep 3: querying external database...')
-    os.system("python3 scrape_people_names.py")
+    print('\nstep 3: downloading NLTK package...')
+    os.system("nltk.download('punkt')")
 
-    print("\nnote that for addition tasks, please refer to 'extra_analysis' method")
+    print('\nstep 4: querying external database...')
+    print('expected loading time: < 10 minutes')
+    os.system('python3 scrape_people_names.py')
+    os.system('python3 scrape_film_names.py')
+
+    print("\nnote that for addition tasks, please refer to 'additional_analysis' method")
     print('this project is completed by 3 students of Group 16')
     print("Pre-ceremony processing complete.")
     return
 
 
-def extra_analysis(year):
+def additional_analysis(year):
     global PREPROCESSED_FLAG
     if PREPROCESSED_FLAG == 0:
         preprocess(year)
@@ -1467,8 +1436,10 @@ def extra_analysis(year):
 
     print('---humor analysis---')
     get_humor(year)
-    # print('---sentiment analysis---')
-    # sentiment_analysis(year)
+
+    print('---sentiment analysis---')
+    sentiment_analysis(year)
+
     print('---red carpet dressing analysis---')
     red_carpet_analysis(year)
 
@@ -1481,4 +1452,4 @@ if __name__ == '__main__':
     # get_nominees('2013')
     # get_awards('2013')
     # pre_ceremony()
-    extra_analysis('2013')
+    additional_analysis('2013')
