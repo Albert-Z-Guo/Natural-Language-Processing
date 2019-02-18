@@ -909,6 +909,7 @@ def sentiment_analysis(year):
         for name in list:
             for name_split in name.lower().split():
                 stop_words |= {name_split}
+    stop_words |= {'para'}
 
     print('hosts:', HOSTS)
     for host in HOSTS:
@@ -986,6 +987,18 @@ def output_reesults(year):
         nominees = award_nominees_dict[award]
         print('nominees:', nominees)
 
+    print('\nJSON format:')
+    d = {}
+    d['host'] = HOSTS
+    for award in awards:
+        a = {}
+        a['presenters'] = award_presenters_dict[award]
+        a['nominees'] = award_nominees_dict[award]
+        a['winner'] = award_winner_dict[award]
+        d[award] = a
+    print(d)
+
+    # perform additional analyses
     additional_analysis(year)
 
 
