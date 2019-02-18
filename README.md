@@ -29,7 +29,7 @@ Team Members:
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
 
 ## Getting Started
-### Installation
+### Environment Setup
 To install all the libraries/dependencies and prepare data used in this project, run
 ```
 pip install -r requirements.txt
