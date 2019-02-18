@@ -31,7 +31,7 @@ To install all the libraries/dependencies and prepare data used in this project,
 ```
 pip install -r requirements.txt
 ```
-To download the spaCy language model used in this project, run
+To download the [spaCy](https://spacy.io/) language model used in this project, run
 ```
 python3 -m spacy download en
 ```
