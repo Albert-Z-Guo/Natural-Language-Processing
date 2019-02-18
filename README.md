@@ -13,12 +13,15 @@ Tweets (2013) used in this project were retrieved similarly, but with fewer keyw
 
 See [Twitter API "track" parameter](https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters) for details.
 
-Identification tasks include, but not limited to
+Identification tasks include:
 1. Host(s)
 2. Awards Names
 3. Awards Presenters
 4. Awards Nominees
 5. Awards Winners
+6. Red Carpet (Who was best dressed, worst dressed, most discussed, most controversial?)
+7. Humor (What were the best jokes of the night, and who said them?)
+8. Sentiment (What were the most common sentiments used with respect to the hosts, winners, presenters, and nominees?)
 
 Team Members:
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
@@ -35,7 +38,7 @@ To download the [spaCy](https://spacy.io/) language model used in this project, 
 ```
 python3 -m spacy download en
 ```
-To download NLTK package used, run
+To download [NLTK](https://www.nltk.org/) package used, run
 ```
 nltk.download('punkt')
 ```
