@@ -10,6 +10,9 @@ import pandas as pd
 import spacy
 import gender_guesser.detector as gender
 
+from textblob import TextBlob
+# import nltk
+
 nlp = spacy.load('en')
 
 
@@ -26,9 +29,6 @@ award_winner_dict = {}
 award_presenters_dict = {}
 award_nominees_dict = {}
 
-with open('name_entities.json') as file:
-    name_entites = json.load(file)
-file.closed
 
 
 def remove_retweet_prefix(line):
@@ -613,12 +613,14 @@ def preprocess(year):
     print('total preprocessing time: {0:.2f} seconds'.format(time.time() - start_time))
 
 
-def check_entity(entity, category, percentage):
-    entities = []
-    for name in name_entites[category]:
-        if fuzz.ratio(name, entity) > percentage:
-            entities.append(name)
-    return entities
+def get_film_name():
+    try:
+        with open('film_names.json') as file:
+            name_entites = json.load(file)
+        file.closed
+        return name_entites
+    except:
+        return {}
 
 
 def find_person_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, stop_words, recurse = False):
@@ -642,13 +644,21 @@ def find_person_nominees(award, data, pattern, award_keywords, target_word_patte
             match_target_word = re.findall(target_word_pattern, line.lower()) if target_word_pattern is not None else ['']
             num_keywords_matched = len(set(award_keywords).intersection(set(line.split())))
 
-            if match:
-                for name in name_entites['name']:
-                    if len(name) > 4 and re.search(name.lower(), line) is not None:
-                        if name not in nominee_dict:
-                            nominee_dict[name] = 10
-                        else:
-                            nominee_dict[name] += 10
+            # if match:
+            #     try:
+            #         with open('people_names.pickle', 'rb') as file:
+            #             people_names = pickle.load(file)
+            #         file.close()
+            #     except:
+            #         people_names = []
+            #
+            #     for name in people_names:
+            #         if name in line:
+            #             if name in nominee_dict:
+            #                 nominee_dict[name] += 1
+            #             else:
+            #                 nominee_dict[name] = 1
+
 
             if num_keywords_matched >= num_keywords_to_match_min and (match_target_word or recurse) and match:
                 weight = 5 if any('nominee' or 'nominat' or 'lost' or 'lose' in tup for tup in match) else 1
@@ -671,18 +681,23 @@ def find_person_nominees(award, data, pattern, award_keywords, target_word_patte
                                 weight += 10
                             elif 'actor' in award_keywords and gender_detector.get_gender(entity.split()[0]) == 'male':
                                 weight += 10
-                            # weight += 5
+                            weight += 5
                         else:
                             weight -= 10
 
-                        matched_names = check_entity(entity, 'name', 90)
-                        if len(matched_names) > 0:
-                            weight += 10
-                            for n in matched_names:
-                                if n not in nominee_dict:
-                                    nominee_dict[n] = weight
+                        try:
+                            with open('people_names.pickle', 'rb') as file:
+                                people_names = pickle.load(file)
+                            file.close()
+                        except:
+                            people_names = []
+
+                        for name in people_names:
+                            if name in line:
+                                if name in nominee_dict:
+                                    nominee_dict[name] += weight
                                 else:
-                                    nominee_dict[n] += weight
+                                    nominee_dict[name] = weight
 
                         if entity not in nominee_dict:
                             nominee_dict[entity] = weight
@@ -694,7 +709,7 @@ def find_person_nominees(award, data, pattern, award_keywords, target_word_patte
     return nominee_dict
 
 
-def find_other_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, category, stop_words, recurse = False):
+def find_other_nominees(year, award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, category, stop_words, recurse = False):
     if num_keywords_to_match_min <= 0:
         return nominee_dict
 
@@ -708,19 +723,32 @@ def find_other_nominees(award, data, pattern, award_keywords, target_word_patter
             award_keywords.append('picture')
         print('expanded award with more keywards', award_keywords)
 
+    possible_film_names = []
+    if category != 'song':
+        # use film name data to get entity
+        # get films in the last two years
+        year = str(int(year) - 1)
+        if year in FILM_NAMES:
+            possible_film_names += FILM_NAMES[year]
+
+        year = str(int(year) - 1)
+        if year in FILM_NAMES:
+            possible_film_names += FILM_NAMES[year]
+
     if len(nominee_dict) <= 10:
         for line in data:
             match = re.findall(pattern, line.lower())
             match_target_word = re.findall(target_word_pattern, line.lower()) if target_word_pattern is not None else ['']
             num_keywords_matched = len(set(award_keywords).intersection(set(line.split())))
 
-            if match:
-                for name in name_entites[category]:
-                    if len(name) > 4 and re.search(name.lower(), line) is not None:
-                        if name not in nominee_dict:
-                            nominee_dict[name] = 10
-                        else:
-                            nominee_dict[name] += 10
+            # if category != 'song' and match:
+            #     # use film name data to get entity
+            #     for film_name in possible_film_names:
+            #         if film_name.lower() in line.lower() and len(film_name) > 3:
+            #             if film_name not in nominee_dict:
+            #                 nominee_dict[film_name] = 1
+            #             else:
+            #                 nominee_dict[film_name] += 1
 
             if num_keywords_matched >= num_keywords_to_match_min and (match_target_word or recurse) and match:
                 weight = 1
@@ -735,26 +763,25 @@ def find_other_nominees(award, data, pattern, award_keywords, target_word_patter
                     entity = entity.strip()
                     entity = remove_apostrophe(entity)
                     if len(entity) > 3:
-                        matched_names = check_entity(entity, category, 90)
-                        if len(matched_names) > 0:
-                            weight += 10
-                            for n in matched_names:
-                                if n not in nominee_dict:
-                                    nominee_dict[n] = 10
-                                else:
-                                    nominee_dict[n] += 10
-
+                        if category != 'song':
+                            # use film name data to get entity
+                            for film_name in possible_film_names:
+                                if (film_name.lower() in line.lower()) and len(film_name) > 3:
+                                    # print('find film:', film_name)
+                                    if film_name not in nominee_dict:
+                                        nominee_dict[film_name] = weight
+                                    else:
+                                        nominee_dict[film_name] += weight
                         if entity not in nominee_dict:
                             nominee_dict[entity] = weight
                         else:
                             nominee_dict[entity] += weight
     if len(nominee_dict) <= 10:
-        nominee_dict = find_other_nominees(award, data, pattern, award_keywords, target_word_pattern,
-                                           num_keywords_to_match_min - 1, nominee_dict, category, True)
+        nominee_dict = find_other_nominees(year, award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min-1, nominee_dict, category, stop_words, True)
     return nominee_dict
 
 
-def find_nominees(data, award):
+def find_nominees(data, award, year, stop_words):
     # no nominee for cecil b. demille award
     if award == 'cecil b. demille award':
         return []
@@ -774,7 +801,6 @@ def find_nominees(data, award):
     words_to_remove = words_to_remove + award_keywords
 
     num_keywords_to_match_min = 1 if len(award_keywords) == 1 else round(len(award_keywords) * 0.7)
-    stop_words = generate_stopwords(OFFICIAL_AWARDS_1315)
     target_word = check_target_words(award_keywords)
     print('target words:', target_word)
 
@@ -790,9 +816,11 @@ def find_nominees(data, award):
         category = 'film'
 
     print('category:', category)
-    num = 0
     target_word_pattern = None
-    gender_detector = gender.Detector()
+
+    film_names = get_film_name()
+    global FILM_NAMES
+    FILM_NAMES = film_names
 
     # if len(award_keywords) != num_keywords_to_match and target_word:
     # flag = 1
@@ -808,9 +836,9 @@ def find_nominees(data, award):
 
     if category == 'name':
         nominee_dict = find_person_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min,
-                                                           {}, stop_words)
+                                                           {}, stop_words, False)
     else:
-        nominee_dict = find_other_nominees(award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, {}, category,stop_words)
+        nominee_dict = find_other_nominees(year, award, data, pattern, award_keywords, target_word_pattern, num_keywords_to_match_min, nominee_dict, category, stop_words, False)
 
     # remove unwanted words
     for word in words_to_remove:
@@ -827,14 +855,24 @@ def find_nominees(data, award):
     print('top results:')
     print(top_results)
     # print('top results after merging:')
-    top_10 = top_results
     if category == 'name':
-        top_10 = merge_names(top_results[0:20], nominee_dict)
-    # top_10 = top_results
+        top_results, nominee_dict = filter_people_names(top_results, nominee_dict)
+        top_10 = merge_names(top_results, nominee_dict)
+    else:
+        top_results, nominee_dict = filter_category_names(top_results, nominee_dict)
+        top_results = sorted(nominee_dict.items(), key=lambda pair: pair[1], reverse=True)
+        top_10 = merge_names(top_results, nominee_dict)
 
     # remove winner from name list
-    # hard code winner:
-    winner = WINNERS[award]
+    try:
+        with open('winners_{0}.pickle'.format(year), 'rb') as file:
+            global award_winner_dict
+            award_winner_dict = pickle.load(file)
+    except:
+        get_winner(year)
+    winner = award_winner_dict[award]
+    winner = winner.lower()
+    print("winner:", winner)
     for n in top_10[:5]:
         name = n[0]
         if re.search(winner, name.lower()) or fuzz.ratio(name.lower(), winner) > 90:
@@ -963,6 +1001,143 @@ def sentiment_analysis(year):
         #     print(find_sentiments(nominee, stop_words))
         # print()
 
+def get_name_to_reduce(nominees):
+    names_clusters = []
+    names = list(nominees.keys())
+
+    for name in names:
+        # each name starts as a cluster
+        cluster = [name]
+        names_to_reduce = names[:]
+        names_to_reduce.remove(name)
+
+        # one vs. all comparisons
+        for i in names_to_reduce:
+            ratio = fuzz.ratio(name.lower(), i.lower())
+            # if similarity is larger than 75 or one name is contained in the other name
+            if ratio > 75 or re.search(name, i, flags=re.IGNORECASE) or re.search(i, name, flags=re.IGNORECASE):
+                cluster.append(i)
+
+        # if multiple names are identified in one cluster
+        if len(cluster) > 1:
+            names_clusters.append(cluster)
+
+    #     print(cluster)
+
+
+    # sort clusters
+    names_clusters.sort()
+    # sort within each cluster
+    names_clusters = ['|'.join(sorted(cluster)) for cluster in names_clusters]
+    # remove overlaps
+    names_clusters_reduced = [line.split('|') for line in list(set(names_clusters))]
+    # sort by length from shortest to longest (merge from the shortest)
+    names_clusters_reduced.sort(key=len)
+#     print('\nnames clusters to merge:')
+#     pprint.pprint(names_clusters_reduced)
+#     print('\n')
+    return names_clusters_reduced
+
+def reduce_names(nominees):
+    reduced_nominees = nominees.copy()
+    names_clusters_reduced = get_name_to_reduce(nominees)
+
+    def weighted_freq(element):
+        if element in reduced_nominees:
+            return abs(reduced_nominees[element]) * len(element)
+        else:
+            return 0
+
+    for cluster in names_clusters_reduced:
+        # select the longest entity name
+        selected_entity_name = max(cluster, key=weighted_freq)
+        cluster.remove(selected_entity_name)
+        # for names to be merged to the selected entity name
+        for name in cluster:
+            # if not deleted in previous cases, cumulate frequencies to the selected entity
+            if name in reduced_nominees and selected_entity_name in reduced_nominees:
+                reduced_nominees[selected_entity_name] += reduced_nominees[name]
+                del reduced_nominees[name]
+    return reduced_nominees
+
+
+def get_polarity(line):
+    blob = TextBlob(line)
+    for sentence in blob.sentences:
+#         print(sentence.sentiment.polarity)
+        return float(sentence.sentiment.polarity)
+
+
+def red_carpet_analysis(year):
+    pattern = re.compile("(dress)|(wear)|(outfit)|(suit)|(cloth)", re.IGNORECASE)
+    # pattern1 = re.compile("(\saward\s)|(\sbest\s)", re.IGNORECASE)
+    neg_dict = {}
+    pos_dict = {}
+
+    for line in CLEANSED_DATA:
+        match = pattern.search(line)
+
+        if match:
+            p = get_polarity(line)
+            doc = nlp(line)
+
+            for ent in doc.ents:
+                if ent.label_ == 'PERSON':
+                    name = ent.text.strip()
+                    name = remove_apostrophe(name)
+                    # not add to list if the entity is null or golden globe related
+                    if p is None or name == '' or fuzz.ratio(name.lower(), 'golden globes') > 60:
+                        continue
+                    if p < -0.1:
+                        if name in neg_dict:
+                            neg_dict[name] += p
+                        else:
+                            neg_dict[name] = p
+
+                    if p > 0.1:
+                        if name in pos_dict:
+                            pos_dict[name] += p
+                        else:
+                            pos_dict[name] = p
+
+    # get rid of names that are too long or too short
+    for name in list(pos_dict.keys()):
+        if len(name) < 5 or len(name) > 17:
+            del pos_dict[name]
+
+    for name in list(neg_dict.keys()):
+        if len(name) < 5 or len(name) > 17:
+            del neg_dict[name]
+
+    pos_dict = reduce_names(pos_dict)
+    neg_dict = reduce_names(neg_dict)
+
+    def get_sorted_names(nominees, f):
+        sorted_nominees = sorted(nominees.items(), key=lambda e: e[1], reverse=f)
+        names = [pair[0] for pair in sorted_nominees]
+        return names
+
+    sorted_neg = get_sorted_names(pos_dict, True)
+    sorted_pos = get_sorted_names(neg_dict, False)
+
+    print("\nTop five best dressed:")
+    print(sorted_pos[:5])
+    print("\nTop five worst dressed:")
+    print(sorted_neg[:5])
+
+    contro_dict = {}
+    for name in sorted_pos:
+        if name in sorted_neg:
+            if name in contro_dict:
+                contro_dict[name] += sorted_neg.index(name) + sorted_pos.index(name)
+            else :
+                contro_dict[name] = sorted_neg.index(name) + sorted_pos.index(name)
+
+    contro_dict = get_sorted_names(contro_dict, False)
+    print("\nTop five most controversial dressed:")
+    print(contro_dict[:5])
+
+
 
 # the following global variable and functions are adapted from gg_api.py from autograder
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
@@ -1030,9 +1205,17 @@ def get_nominees(year):
     elif year == '2018' or '2019':
         awards = OFFICIAL_AWARDS_1819
 
+    stop_words = generate_stopwords(awards, year)
+
     global award_nominees_dict
+
+    c = 1
     for award in awards:
-        award_nominees_dict[award] = find_nominees(CLEANSED_DATA, award)
+        print('-----', c, '-----')
+        c += 1
+        print("Find nominees for: ", award)
+        award_nominees_dict[award] = find_nominees(CLEANSED_DATA, award, year, stop_words)
+        print("My answer: ", award_nominees_dict[award])
 
     with open('nominees_{0}.pickle'.format(year), 'wb') as file:
         pickle.dump(award_nominees_dict, file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1183,7 +1366,8 @@ def extra_analysis(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
-    sentiment_analysis(year)
+    # sentiment_analysis(year)
+    red_carpet_analysis(year)
 
 # individual task testing
 if __name__ == '__main__':
