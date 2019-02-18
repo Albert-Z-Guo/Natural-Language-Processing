@@ -588,6 +588,8 @@ def get_film_name():
         file.closed
         return name_entites
     except:
+        print("'film_names.json' is not found...")
+        print("make sure you have run 'pre_ceremony()' before running tasks")
         return {}
 
 
