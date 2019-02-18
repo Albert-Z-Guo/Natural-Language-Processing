@@ -1466,12 +1466,12 @@ def extra_analysis(year):
         preprocess(year)
         PREPROCESSED_FLAG = 1
 
-    sentiment_analysis(year)
-    red_carpet_analysis(year)
     print('---humor analysis---')
     get_humor(year)
     # print('---sentiment analysis---')
     # sentiment_analysis(year)
+    print('---red carpet dressing analysis---')
+    red_carpet_analysis(year)
 
 
 # individual task testing
