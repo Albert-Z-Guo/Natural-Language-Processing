@@ -8,6 +8,8 @@ import pickle
 from fuzzywuzzy import fuzz
 import pandas as pd
 import spacy
+import nltk
+from nltk.corpus import stopwords
 import gender_guesser.detector as gender
 
 nlp = spacy.load('en')
@@ -116,7 +118,6 @@ def find_host(CLEANSED_DATA, awards, year):
                 else:
                     entity_freq_dict[entity] += 1
     return entity_freq_dict
-
 
 def remove_goldeb_globes(top_results, entity_freq_dict):
     golden_globes = [name for name in [pair[0] for pair in top_results] if fuzz.ratio(name.lower(), 'golden globes') > 60]
@@ -1176,6 +1177,106 @@ def pre_ceremony():
     print("Pre-ceremony processing complete.")
     return
 
+# the functions of finding humor people and jokes start
+
+humor_keywords = ['haha', 'lol','hh','233','funny','joke','hilarious','comedian', 'best joke', 'hysterical']
+
+def isHumor(text):
+    for x in humor_keywords:
+        if text.find(x) != -1:
+            return True
+    return False
+
+def find_humor(CLEANSED_DATA, awards, year):
+    stop_words = generate_stopwords(awards, year)
+    entity_freq_dict = {}
+
+    for line in CLEANSED_DATA:
+        match = isHumor(line)
+        if match:
+            for entity in identify_entities(line, stop_words).keys():
+                if entity not in entity_freq_dict:
+                    entity_freq_dict[entity] = 1
+                else:
+                    entity_freq_dict[entity] += 1
+    return entity_freq_dict,stop_words
+
+def get_joke(CLEANSED_DATA,stop_words):
+    humordata = {}
+    jokes = []
+    k = 10
+    index = 1
+    sign = 0
+    temp_joke = []
+
+    for item in CLEANSED_DATA:
+        line = item.lower()
+        for key in humor_keywords:
+            if key in line:
+                tokens = [w for w in line.split() if not w in stop_words]
+                for joke in nltk.ngrams(tokens, k):
+                    if joke in humordata:
+                        humordata[joke] += 1
+                    else:
+                        humordata[joke] = 1
+    Dict = sorted(humordata.items(), key=lambda entry: entry[1], reverse=True)
+
+    for i in range (0, len(Dict) - 1):
+        if sign == 0:
+            index = 1
+            if len(temp_joke) != 0:
+                joke_soace = ''
+                for item in temp_joke:
+                    joke_soace += item + ' '
+                jokes.append(joke_soace)
+            temp_joke = []
+        if sign == 1:
+            index = 0
+        if index == 1:
+            for key in Dict[i][0]:
+                temp_joke.append(key)
+            sign = 1
+            index = 0
+        for j in range (1, k):
+            if Dict[i][0][j] != Dict[i + 1][0][j - 1] or Dict[i + 1][1] < 5:
+                sign = 0
+        if sign == 1:
+             temp_joke.append(Dict[i + 1][0][k - 1])
+
+    return jokes[0: 5]
+
+def get_humor(year):
+    '''Hosts is a list of one or more strings. Do NOT change the name
+    of this function or what it returns.'''
+    global PREPROCESSED_FLAG
+    if PREPROCESSED_FLAG == 0:
+        preprocess(year)
+        PREPROCESSED_FLAG = 1
+
+    if year == '2013' or '2015':
+        awards = OFFICIAL_AWARDS_1315
+    elif year == '2018' or '2019':
+        awards = OFFICIAL_AWARDS_1819
+
+    entity_freq_dict,stop_words = find_humor(CLEANSED_DATA, awards, year)
+    top_100 = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:100]
+    # remove 'golden globes' from identified names
+    entity_freq_dict = remove_goldeb_globes(top_100, entity_freq_dict)
+    top_results = sorted(entity_freq_dict.items(), key=lambda pair: pair[1], reverse=True)[:20]
+    # filter for names
+    top_results, entity_freq_dict = filter_people_names(top_results, entity_freq_dict)
+    top_10 = merge_names(top_results, entity_freq_dict)
+    HUMORS = [name[0] for name in top_10][:2]
+
+    JOKES = get_joke(CLEANSED_DATA,stop_words)
+    print('Best jokes on ' + year)
+    for item in JOKES:
+        print(item)
+    print('Best jokers on ' + year)
+    print(HUMORS)
+    return HUMORS,JOKES
+
+# the functions of finding humor people and jokes end
 
 def extra_analysis(year):
     global PREPROCESSED_FLAG
@@ -1192,5 +1293,6 @@ if __name__ == '__main__':
     # get_winner('2013')
     # get_nominees('2013')
     # get_awards('2013')
+    # get_humor('2013')
     # pre_ceremony()
     extra_analysis('2013')
