@@ -6,7 +6,6 @@
 Recipe Transformer
 
 Tasks include:
-1. 
 
 Team Members:
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
