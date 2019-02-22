@@ -1,7 +1,7 @@
 # Natural-Language-Processing
 
 ## Project Description
-### Golden Globes Hosts and Awards Identification via Tweets
+### Golden Globes Awards Identification via Tweets
 
 Tweets (2015) used in this project were retrieved if they matched the query:
 ```python
