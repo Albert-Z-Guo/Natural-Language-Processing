@@ -1,9 +1,7 @@
 # Natural-Language-Processing
 
 ## Project Description
-### Golden Globes Awards Identification via Tweets
-
-Recipe Transformer
+### Recipe Transformer
 
 Tasks include:
 
