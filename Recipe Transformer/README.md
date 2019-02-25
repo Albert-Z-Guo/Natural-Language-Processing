@@ -12,9 +12,9 @@ Tasks include:
     - Measurement (cup, teaspoon, pinch, etc.)
     - Descriptor (e.g. fresh, extra-virgin et.)
     - Preparation (e.g. finely chopped etc.)
-    - Tools (e.g. pans, graters, whisks, etc.)
-    - Methods
-  - Primary cooking method (e.g. sauté, broil, boil, poach, etc.)
+  - Tools (e.g. pans, graters, whisks, etc.)
+  - Methods
+    - Primary cooking method (e.g. sauté, broil, boil, poach, etc.)
   - Steps – parse the directions into a series of steps that each consist of ingredients, tools, methods, and times
 3. Ask the user what kind of transformation they want to do.
   - To and from vegetarian
