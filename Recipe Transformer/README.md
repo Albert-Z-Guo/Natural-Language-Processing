@@ -10,8 +10,8 @@ Tasks include:
      - Ingredient name
      - Quantity
      - Measurement (e.g. cup, teaspoon, pinch, etc.)
-     - Descriptor (e.g. fresh, extra-virgin et.)
-     - Preparation (e.g. finely chopped etc.)
+     - Descriptor (e.g. fresh, dried, extra-virgin etc.)
+     - Preparation (e.g. finely chopped, crushed etc.)
    - Tools (e.g. pans, graters, whisks, etc.)
    - Methods
      - Primary cooking method (e.g. sauté, broil, boil, poach, etc.)
