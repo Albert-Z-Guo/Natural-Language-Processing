@@ -4,7 +4,7 @@
 ### Recipe Transformer
 
 Tasks include:
-1. Accept the URL of a recipe from AllRecipes.com, and programmatically fetch the page.
+1. Accept the URL of a recipe from AllRecipes.com, and fetch the page.
 2. Parse the page into the recipe data representation:
    - Ingredients
      - Ingredient name
