@@ -57,6 +57,7 @@ python3 autograder.py 2013 [task]
 where task options are `hosts`, `winner`, `presenters`, `awards`, `nominees`
 
 
-### To do:
+### To-do:
+- add results table
 - clean and modularize main.py
 - take time series into account (e.g. searching within a time span say 2 minutes)
