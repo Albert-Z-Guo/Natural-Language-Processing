@@ -35,7 +35,7 @@ To install all the libraries/dependencies and prepare data used in this project,
 ```
 pip install -r requirements.txt
 ```
-To install [NLTK](http://www.nltk.org/index.html) packages used, such as 'punkt', run:
+To install [NLTK](http://www.nltk.org/index.html) packages used, such as `'punkt'`, run:
 ```
 python3 -m nltk.downloader all
 ```
