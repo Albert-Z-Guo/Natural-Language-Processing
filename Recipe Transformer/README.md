@@ -35,9 +35,11 @@ To install all the libraries/dependencies and prepare data used in this project,
 ```
 pip install -r requirements.txt
 ```
+To download the [spaCy](https://spacy.io/) language model used in this project, run
+```
+python3 -m spacy download en
+```
 To install [NLTK](http://www.nltk.org/index.html) packages used, such as `'punkt'`, run:
 ```
 python3 -m nltk.downloader all
 ```
-
-### Performance Evaluation
