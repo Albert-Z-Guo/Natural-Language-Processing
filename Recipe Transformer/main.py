@@ -10,14 +10,28 @@ from nltk.stem import PorterStemmer
 nlp = spacy.load('en')
 
 class Recipe:
+    def __init__(self, url):
+        page = requests.get(url)
+        self.soup = BeautifulSoup(page.content, 'html.parser')
+        self.name = self.get_recipe_name()
+        self.prep_time, self.cook_time = self.extract_time()
+        self.ingredients, self.directions = ingredients, directions = self.get_ingredient_list_and_directions()
+        self.directions_nouns = self.extract_directions_nouns(self.directions)
+        self.directions_verbs = self.extract_directions_verbs(self.directions)
+        self.tools = self.extract_tools(self.directions_nouns)
+        self.cooking_methods = self.extract_methods(self.directions_verbs)
+
+
     def tokenize(self, line):
         return [(token.text, token.tag_) for token in nlp(line)]
 
 
-    def extract_time(self, url):
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        times = set([element.text.strip() for element in soup.find_all(class_='prepTime__item')])
+    def get_recipe_name(self):
+        return self.soup.find_all("h1", {"class": "recipe-summary__h1"})[0].text
+
+
+    def extract_time(self):
+        times = set([element.text.strip() for element in self.soup.find_all(class_='prepTime__item')])
         # remove uncessary elements
         times.remove('')
         for time in times:
@@ -28,22 +42,20 @@ class Recipe:
         return prep_time, cook_time
 
 
-    def convert_to_minutes(self, time):
-        if 'h' in cook_time:
-            hour_index = cook_time.index('h')
-            hours = int(cook_time[:hour_index].strip())
-            minutes = int(cook_time[hour_index+1 : -1].strip())
+    def convert_to_minutes(self):
+        if 'h' in self.cook_time:
+            hour_index = self.cook_time.index('h')
+            hours = int(self.cook_time[:hour_index].strip())
+            minutes = int(self.cook_time[hour_index+1 : -1].strip())
         else:
             hours = 0
-            minutes = int(cook_time[: -1].strip())
+            minutes = int(self.cook_time[: -1].strip())
         return 60*hours + minutes
 
 
-    def get_ingredient_list_and_directions(self, url):
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, 'html.parser')
+    def get_ingredient_list_and_directions(self):
         # extract ingredients section from the webpage
-        ingredients = set([element.label.text.strip() for element in soup.find_all(class_='checkList__line')])
+        ingredients = set([element.label.text.strip() for element in self.soup.find_all(class_='checkList__line')])
         # remove unnecessary elements
         unnecessary = ['', 'Add all ingredients to list']
         for i in unnecessary:
@@ -51,7 +63,7 @@ class Recipe:
                 ingredients.remove(i)
 
         # extract directions section from the webpage
-        directions = [element.text.strip() for element in soup.find_all(class_='recipe-directions__list--item')]
+        directions = [element.text.strip() for element in self.soup.find_all(class_='recipe-directions__list--item')]
         # remove unnecessary elements
         directions.remove('')
         return ingredients, directions
@@ -99,7 +111,7 @@ class Recipe:
 
 
     def extract_all(self, line):
-        type_exceptions = ['can', 'tablespoon', 'oz']
+        type_exceptions = ['can', 'tablespoon', 'oz', 'clove']
         quantity_split = []
         measurement = None
 
@@ -149,7 +161,7 @@ class Recipe:
         line = re.sub(r'[ ]?™', '', line)
         ingredient_name = line.strip()
 
-        # if 'or to taske' or 'or as needed' in preparation
+        # if 'or to taste' or 'or as needed' in preparation
         if preparation is not None and 'or ' in preparation:
             quantity += ' ' + preparation
             preparation = None
@@ -157,8 +169,89 @@ class Recipe:
         return quantity, measurement, ingredient_name, preparation
 
 
+    def extract_descriptor(self, ingredient_name):
+        type_exceptions = ['parsley', 'garlic', 'chili']
+        descriptor = []
+        token_tag_pairs = []
+
+        for element in ingredient_name.split():
+            # treat compound word with hyphen as an adjective
+            if '-' in element:
+                token_tag_pairs.append((element, 'JJ'))
+            else:
+                token_tag_pairs.append([(token.text, token.tag_) for token in nlp(element)][0])
+
+        for pair in token_tag_pairs:
+            # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
+            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] == 'ground':
+                if pair[0] not in type_exceptions:
+                    descriptor.append(pair[0])
+        if len(descriptor) != 0:
+            return ' '.join(descriptor)
+
+
+    def decompose_ingredients(self, ingredients):
+        print('Ingredients:')
+        for line in ingredients:
+            quantity, measurement, ingredient_name, preparation = self.extract_all(line)
+            # exceptions like "topping:"
+            if ':' in line:
+                continue
+
+            descriptor = self.extract_descriptor(ingredient_name)
+            # remove descriptor if not None
+            ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
+            # if ingredient is empty after removing descriptor
+            if ingredient == '':
+                ingredient = ingredient_name
+            # remove ' to taste' in ingredient if any
+            ingredient = re.sub(r'(or)? to taste', '', ingredient)
+            ingredient = ' '.join(ingredient.split())
+
+            print('\t' + line)
+            print('\t  quantity   :', quantity)
+            print('\t  measurement:', measurement)
+            print('\t  descriptor :', descriptor)
+            print('\t  ingredient :', ingredient)
+            print('\t  preparation:', preparation)
+            print()
+
+
+    def extract_directions_ingredients(self, ingredients):
+        ingredients_nouns = set()
+        for line in ingredients:
+            if ':' in line:
+                continue
+            quantity, measurement, ingredient_name, preparation = self.extract_all(line)
+            ingredients_nouns |= {ingredient_name}
+            # for better granularity, in case full name is not mentioned
+            token_tag_pairs = self.tokenize(ingredient_name)
+            for pair in token_tag_pairs:
+                if len(pair[0]) > 1:
+                    if (pair[1] == 'NN' or pair[1] == 'NNS') and pair[0] != 'ground':
+                        ingredients_nouns |= {pair[0]}
+        # start from the longest
+        return sorted((list(ingredients_nouns)), key=len)[::-1]
+
+
+    def extract_ingredients(self, direction):
+        ingredients_set = self.extract_directions_ingredients(self.ingredients)
+        direction_ingredients = set()
+        used = set()
+        sentences = sent_tokenize(direction)
+        for sentence in sentences:
+            for i in ingredients_set:
+                if i in sentence and i not in used:
+                    direction_ingredients |= {i}
+                    for word in i.split():
+                        used |= {word}
+        return direction_ingredients
+
+
     def extract_directions_nouns(self, directions):
         directions_nouns = set()
+        if isinstance(directions, str):
+            directions = [directions]
         for direction in directions:
             sentences = sent_tokenize(direction)
             for sentence in sentences:
@@ -169,7 +262,7 @@ class Recipe:
                 for pair in token_tag_pairs:
                     # avoid case like 'degrees C'
                     if len(pair[0]) > 1:
-                        if pair[1] == 'NN' or pair[1] == 'NNS':
+                        if (pair[1] == 'NN' or pair[1] == 'NNS') and pair[0] != 'ground':
                             directions_nouns |= {pair[0]}
         return directions_nouns
 
@@ -178,7 +271,6 @@ class Recipe:
         try:
             with open('tools.pickle', 'rb') as file:
                 tools = pickle.load(file)
-                print('loaded tools set successfully')
         except:
             url = 'https://www.mealime.com/kitchen-essentials-list'
             page = requests.get(url)
@@ -207,7 +299,6 @@ class Recipe:
         try:
             with open('cooking_methods.pickle', 'rb') as file:
                 cooking_methods = pickle.load(file)
-                print('loaded cooking_methods set successfully')
         except:
             url = 'https://www.thedailymeal.com/cook/15-basic-cooking-methods-you-need-know-slideshow/slide-13'
             page = requests.get(url)
@@ -226,7 +317,6 @@ class Recipe:
         try:
             with open('other_cooking_methods.pickle', 'rb') as file:
                 other_cooking_methods = pickle.load(file)
-                print('loaded other_cooking_methods set successfully')
         except:
             url = 'https://en.wikibooks.org/wiki/Cookbook:Cooking_Techniques'
             page = requests.get(url)
@@ -258,6 +348,8 @@ class Recipe:
 
     def extract_directions_verbs(self, directions):
         directions_verbs = set()
+        if isinstance(directions, str):
+            directions = [directions]
         for direction in directions:
             sentences = sent_tokenize(direction)
             for sentence in sentences:
@@ -279,15 +371,41 @@ class Recipe:
         return directions_methods
 
 
-# test
-recipe = Recipe()
-print(recipe.extract_all('1 (15 ounce) can garbanzo beans (chickpeas), drained and rinsed'))
-url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
-ingredients, directions = recipe.get_ingredient_list_and_directions(url)
-directions_nouns = recipe.extract_directions_nouns(directions)
-directions_verbs = recipe.extract_directions_verbs(directions)
-print(recipe.extract_tools(directions_nouns))
-print(recipe.retrieve_cooking_methods_set())
-print(recipe.retrieve_other_cooking_methods_set())
-print(recipe.extract_directions_verbs(directions))
-print(recipe.extract_methods(directions_verbs))
+    def decompose_steps(self):
+        prep_time = self.prep_time
+        cook_time = self.cook_time
+        directions = self.directions
+        average_cook_time_per_step = round(self.convert_to_minutes() / (len(directions) - 1))
+
+        for i, direction in enumerate(directions):
+            print('Step:', i+1)
+            print(direction)
+            if i == 0:
+                print('\tPrep time:', prep_time)
+            else:
+                print('\tEstimated average cook time: {0} m'.format(average_cook_time_per_step))
+
+            single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
+            single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))
+            single_direction_ingredients = self.extract_ingredients(direction)
+
+            if len(single_direction_ingredients) > 0:
+                print('\tIngredient(s):', ', '.join(single_direction_ingredients))
+            if len(single_direction_tools) > 0:
+                print('\tTool(s):', ', '.join(single_direction_tools))
+            if len(single_direction_methods) > 0:
+                print('\tMethod(s):', ', '.join(single_direction_methods))
+
+
+if __name__ == '__main__':
+    url = input('Please enter a recipe url: ')
+    # url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
+
+    recipe = Recipe(url)
+
+    print('\nRecipe name:\n' + recipe.name + '\n')
+    recipe.decompose_ingredients(recipe.ingredients)
+    print('Tool(s) used:\n' + ', '.join(recipe.tools))
+    print('\nCooking method(s):\n' + ', '.join(recipe.cooking_methods))
+    print('\nCooking steps:')
+    recipe.decompose_steps()
