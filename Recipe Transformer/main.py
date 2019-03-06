@@ -110,7 +110,7 @@ class Recipe:
 
 
     def extract_descriptor(self, ingredient_name):
-        type_exceptions = ['parsley', 'garlic', 'chili']
+        type_exceptions = ['parsley', 'garlic', 'chili', 'substitute']
         descriptor = []
         token_tag_pairs = []
 
