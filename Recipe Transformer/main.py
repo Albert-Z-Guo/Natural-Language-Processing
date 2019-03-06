@@ -13,7 +13,7 @@ class Recipe:
     def __init__(self, url):
         page = requests.get(url)
         self.soup = BeautifulSoup(page.content, 'html.parser')
-        self.name = self.get_recipe_name()
+        self.name = self.extract_name()
         self.prep_time, self.cook_time = self.extract_time()
         self.ingredients, self.directions = ingredients, directions = self.get_ingredient_list_and_directions()
         self.directions_nouns = self.extract_directions_nouns(self.directions)
@@ -26,7 +26,7 @@ class Recipe:
         return [(token.text, token.tag_) for token in nlp(line)]
 
 
-    def get_recipe_name(self):
+    def extract_name(self):
         return self.soup.find_all("h1", {"class": "recipe-summary__h1"})[0].text
 
 
@@ -61,7 +61,6 @@ class Recipe:
         for i in unnecessary:
             if i in ingredients:
                 ingredients.remove(i)
-
         # extract directions section from the webpage
         directions = [element.text.strip() for element in self.soup.find_all(class_='recipe-directions__list--item')]
         # remove unnecessary elements
@@ -108,6 +107,27 @@ class Recipe:
         match = re.findall(pattern, line)
         if len(match) != 0:
             return match
+
+
+    def extract_descriptor(self, ingredient_name):
+        type_exceptions = ['parsley', 'garlic', 'chili']
+        descriptor = []
+        token_tag_pairs = []
+
+        for element in ingredient_name.split():
+            # treat compound word with hyphen as an adjective
+            if '-' in element:
+                token_tag_pairs.append((element, 'JJ'))
+            else:
+                token_tag_pairs.append([(token.text, token.tag_) for token in nlp(element)][0])
+
+        for pair in token_tag_pairs:
+            # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
+            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] == 'ground':
+                if pair[0] not in type_exceptions:
+                    descriptor.append(pair[0])
+        if len(descriptor) != 0:
+            return ' '.join(descriptor)
 
 
     def extract_all(self, line):
@@ -161,52 +181,34 @@ class Recipe:
         line = re.sub(r'[ ]?™', '', line)
         ingredient_name = line.strip()
 
+        # extract descriptor
+        descriptor = self.extract_descriptor(ingredient_name)
+
+        # remove descriptor if not None
+        ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
+        # if ingredient is empty after removing descriptor
+        if ingredient == '':
+            ingredient = ingredient_name
+        # remove ' to taste' in ingredient if any
+        ingredient = re.sub(r'(or)? to taste', '', ingredient)
+        ingredient = ' '.join(ingredient.split())
+
         # if 'or to taste' or 'or as needed' in preparation
         if preparation is not None and 'or ' in preparation:
             quantity += ' ' + preparation
             preparation = None
 
-        return quantity, measurement, ingredient_name, preparation
-
-
-    def extract_descriptor(self, ingredient_name):
-        type_exceptions = ['parsley', 'garlic', 'chili']
-        descriptor = []
-        token_tag_pairs = []
-
-        for element in ingredient_name.split():
-            # treat compound word with hyphen as an adjective
-            if '-' in element:
-                token_tag_pairs.append((element, 'JJ'))
-            else:
-                token_tag_pairs.append([(token.text, token.tag_) for token in nlp(element)][0])
-
-        for pair in token_tag_pairs:
-            # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
-            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] == 'ground':
-                if pair[0] not in type_exceptions:
-                    descriptor.append(pair[0])
-        if len(descriptor) != 0:
-            return ' '.join(descriptor)
+        return quantity, measurement, descriptor, ingredient, preparation
 
 
     def decompose_ingredients(self, ingredients):
         print('Ingredients:')
         for line in ingredients:
-            quantity, measurement, ingredient_name, preparation = self.extract_all(line)
             # exceptions like "topping:"
             if ':' in line:
                 continue
 
-            descriptor = self.extract_descriptor(ingredient_name)
-            # remove descriptor if not None
-            ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
-            # if ingredient is empty after removing descriptor
-            if ingredient == '':
-                ingredient = ingredient_name
-            # remove ' to taste' in ingredient if any
-            ingredient = re.sub(r'(or)? to taste', '', ingredient)
-            ingredient = ' '.join(ingredient.split())
+            quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
 
             print('\t' + line)
             print('\t  quantity   :', quantity)
@@ -222,10 +224,10 @@ class Recipe:
         for line in ingredients:
             if ':' in line:
                 continue
-            quantity, measurement, ingredient_name, preparation = self.extract_all(line)
-            ingredients_nouns |= {ingredient_name}
+            quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
+            ingredients_nouns |= {ingredient}
             # for better granularity, in case full name is not mentioned
-            token_tag_pairs = self.tokenize(ingredient_name)
+            token_tag_pairs = self.tokenize(ingredient)
             for pair in token_tag_pairs:
                 if len(pair[0]) > 1:
                     if (pair[1] == 'NN' or pair[1] == 'NNS') and pair[0] != 'ground':
@@ -282,7 +284,6 @@ class Recipe:
             # save retrieved data
             with open('tools.pickle', 'wb') as file:
                 pickle.dump(tools, file, protocol=pickle.HIGHEST_PROTOCOL)
-
         return tools
 
 
@@ -309,7 +310,6 @@ class Recipe:
             # save retrieved data
             with open('cooking_methods.pickle', 'wb') as file:
                 pickle.dump(cooking_methods, file, protocol=pickle.HIGHEST_PROTOCOL)
-
         return cooking_methods
 
 
@@ -342,7 +342,6 @@ class Recipe:
             # save retrieved data
             with open('other_cooking_methods.pickle', 'wb') as file:
                 pickle.dump(other_cooking_methods, file, protocol=pickle.HIGHEST_PROTOCOL)
-
         return other_cooking_methods
 
 
