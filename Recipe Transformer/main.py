@@ -110,7 +110,8 @@ class Recipe:
 
 
     def extract_descriptor(self, ingredient_name):
-        type_exceptions = ['parsley', 'garlic', 'chili', 'substitute']
+        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'substitute']
+        adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         descriptor = []
         token_tag_pairs = []
 
@@ -123,8 +124,8 @@ class Recipe:
 
         for pair in token_tag_pairs:
             # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
-            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] == 'ground':
-                if pair[0] not in type_exceptions:
+            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] in adjective_type_exceptions:
+                if pair[0] not in noun_type_exceptions:
                     descriptor.append(pair[0])
         if len(descriptor) != 0:
             return ' '.join(descriptor)
@@ -174,7 +175,6 @@ class Recipe:
         # append quantity in backets at the end
         if quantity_in_brackets:
             quantity_split.append(quantity_in_brackets)
-        quantity = ' '.join(quantity_split)
 
         # extract ingredient name
         line = re.sub(r'[ ]?®', '', line)
@@ -186,9 +186,16 @@ class Recipe:
 
         # remove descriptor if not None
         ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
+
         # if ingredient is empty after removing descriptor
         if ingredient == '':
             ingredient = ingredient_name
+
+        # add 'to taste' to quantity if any
+        if 'to taste' in ingredient:
+            quantity_split.append('to taste')
+        quantity = ' '.join(quantity_split)
+
         # remove ' to taste' in ingredient if any
         ingredient = re.sub(r'(or)? to taste', '', ingredient)
         ingredient = ' '.join(ingredient.split())
@@ -197,6 +204,14 @@ class Recipe:
         if preparation is not None and 'or ' in preparation:
             quantity += ' ' + preparation
             preparation = None
+
+        # treatment for exceptions (e.g. '3 whole skinless, boneless chicken breasts')
+        if 'skinless' in ingredient or 'boneless' in ingredient:
+            ingredient += ' ' + preparation
+            preparation = None
+            descriptor = self.extract_descriptor(ingredient)
+            if descriptor:
+                ingredient = ingredient.replace(descriptor, '').strip()
 
         return quantity, measurement, descriptor, ingredient, preparation
 
@@ -245,6 +260,7 @@ class Recipe:
             for i in ingredients_set:
                 if i in sentence and i not in used:
                     direction_ingredients |= {i}
+                    # store used partial word in used
                     for word in i.split():
                         used |= {word}
         return direction_ingredients

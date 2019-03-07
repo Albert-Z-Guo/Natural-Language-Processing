@@ -1,4 +1,3 @@
-skinless
 beef
 chop
 sausage
@@ -14,6 +13,7 @@ tenderloin
 rib
 shoulder
 meat
+meatloaf
 meatball
 pork
 chicken
