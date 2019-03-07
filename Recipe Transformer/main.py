@@ -85,12 +85,13 @@ class Recipe:
 
 
     def nouns_only(self, line):
+         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
         token_tag_pairs = self.tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
-            if not (pair[1] == "NN" or pair[1] == "NNS"):
+            if not (pair[1] == "NN" or pair[1] == "NNS") or pair[0] in adjective_type_exceptions:
                 return False
         return True
 
@@ -137,7 +138,7 @@ class Recipe:
 
 
     def extract_all(self, line):
-        type_exceptions = ['can', 'tablespoon', 'oz', 'clove']
+        noun_type_exceptions = ['can', 'tablespoon', 'oz', 'clove']
         quantity_split = []
         measurement = None
 
@@ -170,7 +171,7 @@ class Recipe:
                     measurement = line_split[2]
             else:
                 # check line_split length for case like '1 egg' or '1/2 onion, chopped'
-                if len(line_split) > 2 and (self.nouns_only(line_split[1]) or line_split[1] in type_exceptions):
+                if len(line_split) > 2 and (self.nouns_only(line_split[1]) or line_split[1] in noun_type_exceptions):
                     measurement = line_split[1]
             line = re.sub(r'{0}'.format(' '.join(quantity_split)), '', line)
 
@@ -190,6 +191,7 @@ class Recipe:
         descriptor = self.extract_descriptor(ingredient_name)
 
         # remove descriptor if not None
+        ingredient_name = re.sub(r'[^\w\s]', '', ingredient_name)
         ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
 
         # if ingredient is empty after removing descriptor
@@ -214,6 +216,7 @@ class Recipe:
         if 'skinless' in ingredient or 'boneless' in ingredient:
             ingredient += ' ' + preparation
             preparation = None
+            ingredient = re.sub(r'[^\w\s]', '', ingredient)
             descriptor = self.extract_descriptor(ingredient)
             if descriptor:
                 ingredient = ingredient.replace(descriptor, '').strip()
