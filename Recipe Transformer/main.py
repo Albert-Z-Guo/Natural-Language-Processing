@@ -54,13 +54,18 @@ class Recipe:
 
 
     def get_ingredient_list_and_directions(self):
-        # extract ingredients section from the webpage
-        ingredients = set([element.label.text.strip() for element in self.soup.find_all(class_='checkList__line')])
+        ingredients = [element.label.text.strip() for element in self.soup.find_all(class_='checkList__line')]
+        # remove exceptions like 'topping:'
+        for i in ingredients:
+            if ':' in i:
+                ingredients.remove(i)
+        ingredients = set(ingredients)
         # remove unnecessary elements
         unnecessary = ['', 'Add all ingredients to list']
         for i in unnecessary:
             if i in ingredients:
                 ingredients.remove(i)
+
         # extract directions section from the webpage
         directions = [element.text.strip() for element in self.soup.find_all(class_='recipe-directions__list--item')]
         # remove unnecessary elements
@@ -219,12 +224,7 @@ class Recipe:
     def decompose_ingredients(self, ingredients):
         print('Ingredients:')
         for line in ingredients:
-            # exceptions like "topping:"
-            if ':' in line:
-                continue
-
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
-
             print('\t' + line)
             print('\t  quantity   :', quantity)
             print('\t  measurement:', measurement)
@@ -237,8 +237,6 @@ class Recipe:
     def extract_directions_ingredients(self, ingredients):
         ingredients_nouns = set()
         for line in ingredients:
-            if ':' in line:
-                continue
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
             ingredients_nouns |= {ingredient}
             # for better granularity, in case full name is not mentioned
