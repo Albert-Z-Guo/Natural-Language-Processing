@@ -86,12 +86,13 @@ class Recipe:
 
     def nouns_only(self, line):
         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
+        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
         token_tag_pairs = self.tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
-            if not (pair[1] == "NN" or pair[1] == "NNS") or pair[0] in adjective_type_exceptions:
+            if (not (pair[1] == "NN" or pair[1] == "NNS") or pair[0] in adjective_type_exceptions) and pair[0] not in noun_type_exceptions:
                 return False
         return True
 
@@ -103,17 +104,19 @@ class Recipe:
         if len(match) != 0:
             return match
 
+
     def extract_preparation(self, line):
         # find ', abc' or ' - abc' where 'abc' is in arbitrary length
         match = re.findall(re.compile(r'[^.], .*| - .*'), line)
         if len(match) != 0:
             if match[-1][-1] == ')':
-                return match[-1][:-1]
+                return match[-1][1:-1]
             else:
-                return match[-1]
+                return match[-1][1:]
+
 
     def extract_descriptor(self, ingredient_name):
-        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'flanken', 'such']
+        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         descriptor = []
         token_tag_pairs = []
@@ -133,6 +136,7 @@ class Recipe:
         if len(descriptor) != 0:
             return ' '.join(descriptor)
 
+
     def extract_all(self, line):
         noun_type_exceptions = ['can', 'tablespoon', 'oz', 'clove']
         not_measurements = ['jalapeno', 'roma']
@@ -144,9 +148,9 @@ class Recipe:
         # extract preparation
         preparation = self.extract_preparation(line)
         if preparation:
-            line = line.replace(preparation[1:], '')
+            line = line.replace(preparation, '')
             # remove 'x, ' prefix
-            preparation = preparation[3:].strip()
+            preparation = preparation[2:].strip()
 
         # extract backets
         brackets = self.extract_brackets(line)
@@ -223,14 +227,11 @@ class Recipe:
         ingredient = re.sub(r'(or)? to taste', '', ingredient)
         ingredient = ' '.join(ingredient.split())
 
-        # if 'or to taste' or 'or as needed' in preparation
-        if preparation is not None and 'or ' in preparation:
-            quantity += ' ' + preparation
-            preparation = None
-
-        # treatment for exceptions (e.g. '3 whole skinless, boneless chicken breasts')
-        if 'skinless' in ingredient or 'boneless' in ingredient:
-            ingredient_name = ingredient + ' ' + preparation
+        # if the extracted ingredient is not noun
+        if not self.nouns_only(ingredient):
+            ingredient_name = ingredient
+            if preparation:
+                ingredient_name += ' ' + preparation
             ingredient_name = ingredient_name.replace(' -', ',')
             preparation = self.extract_preparation(ingredient_name)
             ingredient_name = re.sub(r'{0}'.format(preparation), '', ingredient_name)
