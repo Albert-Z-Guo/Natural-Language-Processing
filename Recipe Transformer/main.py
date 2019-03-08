@@ -312,7 +312,7 @@ class Recipe:
 
     def retrieve_tools_set(self):
         try:
-            with open('tools.pickle', 'rb') as file:
+            with open('data/tools.pickle', 'rb') as file:
                 tools = pickle.load(file)
         except:
             url = 'https://www.mealime.com/kitchen-essentials-list'
@@ -323,7 +323,7 @@ class Recipe:
             tools = set([PorterStemmer().stem(tool.split()[-1].strip()) for tool in tools])
 
             # save retrieved data
-            with open('tools.pickle', 'wb') as file:
+            with open('data/tools.pickle', 'wb') as file:
                 pickle.dump(tools, file, protocol=pickle.HIGHEST_PROTOCOL)
         return tools
 
@@ -339,7 +339,7 @@ class Recipe:
 
     def retrieve_cooking_methods_set(self):
         try:
-            with open('cooking_methods.pickle', 'rb') as file:
+            with open('data/cooking_methods.pickle', 'rb') as file:
                 cooking_methods = pickle.load(file)
         except:
             url = 'https://www.thedailymeal.com/cook/15-basic-cooking-methods-you-need-know-slideshow/slide-13'
@@ -349,14 +349,14 @@ class Recipe:
             cooking_methods = set([PorterStemmer().stem(method.strip()) for method in cooking_methods])
 
             # save retrieved data
-            with open('cooking_methods.pickle', 'wb') as file:
+            with open('data/cooking_methods.pickle', 'wb') as file:
                 pickle.dump(cooking_methods, file, protocol=pickle.HIGHEST_PROTOCOL)
         return cooking_methods
 
 
     def retrieve_other_cooking_methods_set(self):
         try:
-            with open('other_cooking_methods.pickle', 'rb') as file:
+            with open('data/other_cooking_methods.pickle', 'rb') as file:
                 other_cooking_methods = pickle.load(file)
         except:
             url = 'https://en.wikibooks.org/wiki/Cookbook:Cooking_Techniques'
@@ -381,7 +381,7 @@ class Recipe:
             other_cooking_methods.remove('chocol')
 
             # save retrieved data
-            with open('other_cooking_methods.pickle', 'wb') as file:
+            with open('data/other_cooking_methods.pickle', 'wb') as file:
                 pickle.dump(other_cooking_methods, file, protocol=pickle.HIGHEST_PROTOCOL)
         return other_cooking_methods
 
