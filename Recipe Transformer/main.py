@@ -437,15 +437,54 @@ class Recipe:
                 print('\tMethod(s):', ', '.join(single_direction_methods))
 
 
-if __name__ == '__main__':
-    # url = input('Please enter a recipe url: ')
-    url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
-
-    recipe = Recipe(url)
-
+def display_recipe(recipe):
     print('\nRecipe name:\n' + recipe.name + '\n')
     recipe.decompose_ingredients(recipe.ingredients)
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     print('\nCooking method(s):\n' + ', '.join(recipe.cooking_methods))
     print('\nCooking steps:')
     recipe.decompose_steps()
+
+
+if __name__ == '__main__':
+    # url = input('Please enter a recipe url: ')
+    url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
+    print('\nInput url:\n' + url)
+
+    recipe = Recipe(url)
+    display_recipe(recipe)
+
+    option = None
+    possible_options = ['x', '0', '1', '2', '3', '4']
+
+    while (option != 'x'):
+        print('\nNow transform original recipe to:')
+        print('\tx. No transformation. Exit program.')
+        print('\t0. No transformation. Show original recipe.')
+        print('\t1. Healthy')
+        print('\t2. Vegetarian')
+        print('\t3. Southeast Asian')
+        print('\t4. Thai')
+
+        option = input('Please enter a character/number option: ')
+        while (option not in possible_options):
+            print('Invalid option! Try again.')
+
+        if option == 'x':
+            print('Exit program.')
+            break
+
+        if option == '0':
+            display_recipe(recipe)
+
+        if option == '1':
+            pass
+
+        if option == '2':
+            pass
+
+        if option == '3':
+            pass
+
+        if option == '4':
+            pass
