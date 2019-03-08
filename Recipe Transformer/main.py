@@ -488,7 +488,10 @@ if __name__ == '__main__':
 
         if option == '3':
             # Southeast Asian transform
-            need_transform, new_recipe = southeast_asian.transform(recipe)
+
+            # get new copy of recipe
+            new_recipe = Recipe(url)
+            need_transform, new_recipe = southeast_asian.transform(new_recipe)
             if need_transform:
                 display_recipe(new_recipe)
             else:

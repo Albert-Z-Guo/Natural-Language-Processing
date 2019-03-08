@@ -60,15 +60,13 @@ def transform(recipe):
             print(word)
             return need_eastasian_transform, recipe
 
-    # TODO: deep copy
-    new_recipe = recipe
-    eastasian_ingredient_appearance_count = transform_ingredients(new_recipe)
-    transform_directions(new_recipe)
+    eastasian_ingredient_appearance_count = transform_ingredients(recipe)
+    transform_directions(recipe)
 
     # if (eastasian_ingredient_appearance_count > 4):
     #     need_eastasian_transform = False
     
-    return need_eastasian_transform, new_recipe
+    return need_eastasian_transform, recipe
 
 def transform_ingredients(recipe):
     # count the appearing time for easiesian ingredients to determine whether it needs transformation
