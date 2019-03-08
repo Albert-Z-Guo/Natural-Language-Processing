@@ -85,7 +85,7 @@ class Recipe:
 
 
     def nouns_only(self, line):
-         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
+        adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
         token_tag_pairs = self.tokenize(line)
@@ -96,27 +96,24 @@ class Recipe:
         return True
 
 
-    def extract_quantity_in_backets(self, line):
+    def extract_brackets(self, line):
         # find '(abc)' where 'abc' is in arbitrary length and 'abc' does not contain brackets
         pattern = re.compile(r'\([^\(\)]*\)')
         match = re.findall(pattern, line)
         if len(match) != 0:
-            # if no numerical value or line_split length > 3
-            if not any(char.isdigit() for char in match[0]) or len(match[0].split()) > 3:
-                return None
             return match
-
 
     def extract_preparation(self, line):
-        # find ', abc' where 'abc' is in arbitrary length
-        pattern = re.compile(r'[\b]?, [^\(\)]*')
-        match = re.findall(pattern, line)
+        # find ', abc' or ' - abc' where 'abc' is in arbitrary length
+        match = re.findall(re.compile(r'[^.], .*| - .*'), line)
         if len(match) != 0:
-            return match
-
+            if match[-1][-1] == ')':
+                return match[-1][:-1]
+            else:
+                return match[-1]
 
     def extract_descriptor(self, ingredient_name):
-        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'substitute']
+        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'flanken', 'such']
         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         descriptor = []
         token_tag_pairs = []
@@ -136,26 +133,36 @@ class Recipe:
         if len(descriptor) != 0:
             return ' '.join(descriptor)
 
-
     def extract_all(self, line):
         noun_type_exceptions = ['can', 'tablespoon', 'oz', 'clove']
-        quantity_split = []
+        not_measurements = ['jalapeno', 'roma']
         measurement = None
+        quantity_in_brackets = None
+        quantity_split = []
+        pre_preparation = []
 
         # extract preparation
-        line = line.replace(' -', ',')
         preparation = self.extract_preparation(line)
         if preparation:
-            preparation = preparation[0].strip()
-            line = re.sub(r'{0}'.format(preparation), '', line)
-            # remove ', ' prefix
-            preparation = preparation[2:]
+            line = line.replace(preparation[1:], '')
+            # remove 'x, ' prefix
+            preparation = preparation[3:].strip()
 
-        # extract quantity in backets
-        quantity_in_brackets = self.extract_quantity_in_backets(line)
-        if quantity_in_brackets:
-            line = re.sub(r'\({0}\)'.format(quantity_in_brackets[0]), '', line)
-            quantity_in_brackets = quantity_in_brackets[0]
+        # extract backets
+        brackets = self.extract_brackets(line)
+        if brackets:
+            # check the first bracket
+            # if no numerical value or line_split length > 3
+            if not any(char.isdigit() for char in brackets[0]) or len(brackets[0].split()) > 3:
+                pre_preparation.append(brackets[0][1:-1])
+            else:
+                quantity_in_brackets = brackets[0]
+            # check the rest brackets if any
+            if len(brackets) > 1:
+                for b in brackets[1:]:
+                    pre_preparation.append(b[1:-1])
+            for b in brackets:
+                line = re.sub(r'\({0}\)'.format(b), '', line)
 
         line_split = line.split()
         # extract quantity from the first word if the word contains a digit
@@ -165,13 +172,18 @@ class Recipe:
             # extract quantity from the second word if the word contains a digit
             if any(char.isdigit() for char in line_split[1]):
                 quantity_split.append(line_split[1])
+                # measurement index
+                i = 2
+                # check for special case
+                if line_split[2] == 'oz':
+                    quantity_split.append('oz')
+                    i = 3
                 # check measurement type
-                # to avoid case like '1 large tomato, seeded and chopped'
-                if self.nouns_only(line_split[2]) or line_split[2] in type_exceptions:
-                    measurement = line_split[2]
+                if (self.nouns_only(line_split[i]) or line_split[i] in noun_type_exceptions) and line_split[i] not in not_measurements:
+                    measurement = line_split[i]
             else:
-                # check line_split length for case like '1 egg' or '1/2 onion, chopped'
-                if len(line_split) > 2 and (self.nouns_only(line_split[1]) or line_split[1] in noun_type_exceptions):
+                # check line_split length and measurement type for cases like '1 egg' or '1/2 onion, chopped' or '1 large tomato, seeded and chopped'
+                if len(line_split) > 2 and (self.nouns_only(line_split[1]) or line_split[1] in noun_type_exceptions) and line_split[1] not in not_measurements:
                     measurement = line_split[1]
             line = re.sub(r'{0}'.format(' '.join(quantity_split)), '', line)
 
@@ -182,21 +194,25 @@ class Recipe:
         if quantity_in_brackets:
             quantity_split.append(quantity_in_brackets)
 
-        # extract ingredient name
-        line = re.sub(r'[ ]?®', '', line)
-        line = re.sub(r'[ ]?™', '', line)
         ingredient_name = line.strip()
 
-        # extract descriptor
+        # extract descriptor from ingredient_name
         descriptor = self.extract_descriptor(ingredient_name)
 
-        # remove descriptor if not None
-        ingredient_name = re.sub(r'[^\w\s]', '', ingredient_name)
-        ingredient = ingredient_name.replace(descriptor, '').strip() if descriptor else ingredient_name
-
-        # if ingredient is empty after removing descriptor
+        # extract ingredient
+        ingredient = ingredient_name
+        if descriptor:
+            for i in descriptor.split():
+                ingredient = re.sub(r'[ ]?\b{0}\b'.format(i), '', ingredient).strip()
         if ingredient == '':
             ingredient = ingredient_name
+
+        # add prepreparation to descriptor or preparation
+        if pre_preparation:
+            if descriptor is None:
+                descriptor = ', '.join(pre_preparation)
+            else:
+                descriptor += ', ' + ', '.join(pre_preparation)
 
         # add 'to taste' to quantity if any
         if 'to taste' in ingredient:
@@ -214,12 +230,19 @@ class Recipe:
 
         # treatment for exceptions (e.g. '3 whole skinless, boneless chicken breasts')
         if 'skinless' in ingredient or 'boneless' in ingredient:
-            ingredient += ' ' + preparation
-            preparation = None
-            ingredient = re.sub(r'[^\w\s]', '', ingredient)
-            descriptor = self.extract_descriptor(ingredient)
+            ingredient_name = ingredient + ' ' + preparation
+            ingredient_name = ingredient_name.replace(' -', ',')
+            preparation = self.extract_preparation(ingredient_name)
+            ingredient_name = re.sub(r'{0}'.format(preparation), '', ingredient_name)
+            if preparation:
+                preparation = preparation[2:].strip()
+            descriptor = self.extract_descriptor(ingredient_name)
+            ingredient = ingredient_name
             if descriptor:
-                ingredient = ingredient.replace(descriptor, '').strip()
+                for i in descriptor.split():
+                    ingredient = re.sub(r'[ ]?\b{0}\b'.format(i), '', ingredient).strip()
+                if ingredient == '':
+                    ingredient = ingredient_name
 
         return quantity, measurement, descriptor, ingredient, preparation
 
@@ -414,8 +437,8 @@ class Recipe:
 
 
 if __name__ == '__main__':
-    url = input('Please enter a recipe url: ')
-    # url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
+    # url = input('Please enter a recipe url: ')
+    url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
 
     recipe = Recipe(url)
 
