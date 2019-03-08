@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from nltk import sent_tokenize
 from nltk.stem import PorterStemmer
+import southeast_asian_transformation as southeast_asian
 
 nlp = spacy.load('en')
 
@@ -448,7 +449,10 @@ def display_recipe(recipe):
 
 if __name__ == '__main__':
     # url = input('Please enter a recipe url: ')
-    url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
+    # url = 'https://www.allrecipes.com/recipe/180735/traditional-style-vegan-shepherds-pie/'
+
+    # url = 'https://www.allrecipes.com/recipe/73634/colleens-slow-cooker-jambalaya/'
+    url = 'https://www.allrecipes.com/recipe/45736/chicken-tikka-masala'
     print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
@@ -483,6 +487,12 @@ if __name__ == '__main__':
             pass
 
         if option == '3':
+            # Southeast Asian transform
+            need_transform, new_recipe = southeast_asian.transform(recipe)
+            if need_transform:
+                display_recipe(new_recipe)
+            else:
+                print('Already Southeast Style. No need to transform.')
             pass
 
         if option == '4':
