@@ -472,7 +472,6 @@ if __name__ == '__main__':
 
         if option == 'x':
             print('Exit program.')
-            break
 
         if option == '0':
             display_recipe(recipe)
