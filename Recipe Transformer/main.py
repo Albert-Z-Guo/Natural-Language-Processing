@@ -8,9 +8,9 @@ from nltk import sent_tokenize
 from nltk.stem import PorterStemmer
 from vegetarian import *
 import southeast_asian_transformation as southeast_asian
-# import thai_transformation as thai
-# import healthy_transformation as healthy
-# import india_transformation as india
+import thai_transformation as thai
+import healthy_transformation as healthy
+import india_transformation as india
 
 nlp = spacy.load('en')
 
@@ -473,7 +473,7 @@ if __name__ == '__main__':
         print('\t2. Vegetarian')
         print('\t3. Southeast Asian')
         print('\t4. Thai')
-        print('\t5. India')
+        print('\t5. Indian')
 
         option = input('Please enter a character/number option: ')
         while (option not in possible_options):
@@ -492,7 +492,7 @@ if __name__ == '__main__':
             display_recipe(new_recipe)
 
         if option == '2':
-            vegetarian_recipe = Vegetarian(recipe)
+            vegetarian_recipe = Vegetarian(url)
             display_recipe(vegetarian_recipe)
 
         if option == '3':

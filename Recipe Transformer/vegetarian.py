@@ -1,13 +1,13 @@
 import pickle
 import random
 
+from main import Recipe
 
-class Vegetarian:
-    def __init__(self, recipe):
-        self.original_recipe = recipe
-        self.name = self.original_recipe.name + ' Transformed to Vegetarian'
-        self.tools = self.original_recipe.tools
-        self.cooking_methods = self.original_recipe.cooking_methods
+
+class Vegetarian(Recipe):
+    def __init__(self, url):
+        Recipe.__init__(self, url)
+        self.name += ' Transformed to Vegetarian'
         # load scraped data:
         # 4 pages of vegetarian protein recipes
         # 6 pages of meat recipes
@@ -80,15 +80,13 @@ class Vegetarian:
 
         # custom ingredients substitutions
         self.custom_to_vegetarian_dict = {'frankfurter':'vegetarian sausage',
-                                    'meatball':'vegetarian meatball',
-                                    'meatloaf':'tofu',
-                                    'sausage':'vegetarian sausage',
-                                    'bacon':'vegetarian bacon',
-                                    'ham':'vegetarian ham',
-                                    'skewer':'tofu skewer'}
-
+                                            'meatball':'vegetarian meatball',
+                                            'meatloaf':'tofu',
+                                            'sausage':'vegetarian sausage',
+                                            'bacon':'vegetarian bacon',
+                                            'ham':'vegetarian ham',
+                                            'skewer':'tofu skewer'}
         self.custom_from_vegetarian_dict = {v: k for k, v in self.custom_to_vegetarian_dict.items()}
-
         self.ingredients, self.sub_dict = self.generate_new_ingredients_and_sub_dict()
         self.sub_dict_granular = self.generate_sub_dict_granular()
         self.directions = self.generate_transformed_directions()
@@ -124,9 +122,9 @@ class Vegetarian:
 
 
     def is_broth(self, ingredient):
-     if 'stock' in ingredient or 'consomme' in ingredient or 'bouillon' in ingredient or  'broth' in ingredient:
-        return True
-     return False
+        if 'stock' in ingredient or 'consomme' in ingredient or 'bouillon' in ingredient or  'broth' in ingredient:
+            return True
+        return False
 
 
     def is_meat(self, ingredient):
@@ -149,8 +147,8 @@ class Vegetarian:
         sub_dict = {}
         new_ingredients = []
 
-        for line in self.original_recipe.ingredients:
-            quantity, measurement, descriptor, ingredient, preparation = self.original_recipe.extract_all(line)
+        for line in self.ingredients:
+            quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
 
             # if ingredient is meat
             if self.is_meat(ingredient):
@@ -178,13 +176,11 @@ class Vegetarian:
                 for i in [quantity, sub_measurement, sub_descriptor, sub]:
                     if i is not None:
                         replacement.append(i)
-
-                print('\t' + ' '.join(replacement) + '\n')
                 new_ingredients.append(' '.join(replacement))
             else:
                 new_ingredients.append(line)
-
         return new_ingredients, sub_dict
+
 
     # expand sub_dict() for better granularity
     def generate_sub_dict_granular(self):
@@ -204,7 +200,7 @@ class Vegetarian:
         replaced = set()
         new_directions = []
 
-        for direction in self.original_recipe.directions:
+        for direction in self.directions:
             new_direction = direction
             bulk_substitution = False
 
@@ -226,42 +222,3 @@ class Vegetarian:
 
             new_directions.append(new_direction)
         return new_directions
-
-
-    def decompose_ingredients(self):
-        print('Ingredients:')
-        for line in self.ingredients:
-            quantity, measurement, descriptor, ingredient, preparation = self.original_recipe.extract_all(line)
-            print('\t' + line)
-            print('\t  quantity   :', quantity)
-            print('\t  measurement:', measurement)
-            print('\t  descriptor :', descriptor)
-            print('\t  ingredient :', ingredient)
-            print('\t  preparation:', preparation)
-            print()
-
-
-    def decompose_steps(self):
-        prep_time = self.original_recipe.prep_time
-        cook_time = self.original_recipe.cook_time
-        directions = self.original_recipe.directions
-        average_cook_time_per_step = round(self.original_recipe.convert_to_minutes() / (len(directions) - 1))
-
-        for i, direction in enumerate(self.directions):
-            print('Step:', i+1)
-            print(direction)
-            if i == 0:
-                print('\tPrep time:', prep_time)
-            else:
-                print('\tEstimated average cook time: {0} m'.format(average_cook_time_per_step))
-
-            single_direction_tools = self.original_recipe.extract_tools(self.original_recipe.extract_directions_nouns(direction))
-            single_direction_methods = self.original_recipe.extract_methods(self.original_recipe.extract_directions_verbs(direction))
-            single_direction_ingredients = self.original_recipe.extract_ingredients(direction)
-
-            if len(single_direction_ingredients) > 0:
-                print('\tIngredient(s):', ', '.join(single_direction_ingredients))
-            if len(single_direction_tools) > 0:
-                print('\tTool(s):', ', '.join(single_direction_tools))
-            if len(single_direction_methods) > 0:
-                print('\tMethod(s):', ', '.join(single_direction_methods))
