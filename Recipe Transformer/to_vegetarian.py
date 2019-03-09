@@ -102,7 +102,7 @@ class ToVegetarian(Recipe):
             return choice
 
 
-    def get_vegetarian_substitution(self, ingredient):
+    def substitue_with_vegetable(self, ingredient):
         if 'stock' in ingredient or 'consomme' in ingredient or 'bouillon' in ingredient:
             return 'vegetable stock'
         if 'broth' in ingredient:
@@ -111,14 +111,6 @@ class ToVegetarian(Recipe):
             return self.custom_to_vegetarian_dict[ingredient]
         # randomly substitue a vegetarian protein if no custom substitution is found
         return self.randomly_select(list(self.vegetarian_dict.keys()))
-
-
-    def get_meat_substitution(self, ingredient):
-        if self.is_broth(ingredient):
-            return 'chicken broth'
-        if ingredient in self.custom_from_vegetarian_dict:
-            return self.custom_from_vegetarian_dict[ingredient]
-        return self.randomly_select(list(self.meat_dict.keys()))
 
 
     def is_broth(self, ingredient):
@@ -135,14 +127,6 @@ class ToVegetarian(Recipe):
         return False
 
 
-    def is_vegetable(self, ingredient):
-        if ingredient in self.vegetarian_dict:
-            return True
-        if self.is_broth(ingredient):
-            return True
-        return False
-
-
     def generate_new_ingredients_and_sub_dict(self):
         sub_dict = {}
         new_ingredients = []
@@ -152,7 +136,7 @@ class ToVegetarian(Recipe):
 
             # if ingredient is meat
             if self.is_meat(ingredient):
-                sub = self.get_vegetarian_substitution(ingredient)
+                sub = self.substitue_with_vegetable(ingredient)
                 sub_dict[ingredient] = {}
 
                 # if ingredient is broth
