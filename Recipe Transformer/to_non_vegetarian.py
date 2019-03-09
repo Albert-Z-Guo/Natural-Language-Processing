@@ -4,10 +4,10 @@ import random
 from recipe import Recipe
 
 
-class ToVegetarian(Recipe):
+class ToNonVegetarian(Recipe):
     def __init__(self, url):
         Recipe.__init__(self, url)
-        self.name += ' Transformed to Vegetarian'
+        self.name += ' Transformed to Non-vegetarian'
         # load scraped data:
         # 4 pages of vegetarian protein recipes
         # 6 pages of meat recipes
@@ -56,28 +56,6 @@ class ToVegetarian(Recipe):
                 meat_dict[i]['preparation'] = ['cut into cubes']
         self.meat_dict = meat_dict
 
-        # load selected vegetarian protein list
-        vegetarian_dict = {}
-        with open('data/selected_vegetarian_ingredients.txt', 'r') as file:
-            for line in file:
-                vegetarian_dict[line.strip()] = {}
-        file.close()
-
-        for i in vegetarian_dict:
-            if i in ingredients_categorized['vegetarian_protein']['measurement']:
-                vegetarian_dict[i]['measurement'] = ingredients_categorized['vegetarian_protein']['measurement'][i]
-            else:
-                vegetarian_dict[i]['measurement'] = ['cup', 'can']
-            if i in ingredients_categorized['vegetarian_protein']['descriptor']:
-                vegetarian_dict[i]['descriptor'] = ingredients_categorized['vegetarian_protein']['descriptor'][i]
-            else:
-                vegetarian_dict[i]['descriptor'] = [None]
-            if i in ingredients_categorized['vegetarian_protein']['preparation']:
-                vegetarian_dict[i]['preparation'] = ingredients_categorized['vegetarian_protein']['preparation'][i]
-            else:
-                vegetarian_dict[i]['preparation'] = ['drained']
-        self.vegetarian_dict = vegetarian_dict
-
         # custom ingredients substitutions
         self.custom_to_vegetarian_dict = {'frankfurter':'vegetarian sausage',
                                             'meatball':'vegetarian meatball',
@@ -102,18 +80,7 @@ class ToVegetarian(Recipe):
             return choice
 
 
-    def get_vegetarian_substitution(self, ingredient):
-        if 'stock' in ingredient or 'consomme' in ingredient or 'bouillon' in ingredient:
-            return 'vegetable stock'
-        if 'broth' in ingredient:
-            return 'vegetable broth'
-        if ingredient in self.custom_to_vegetarian_dict:
-            return self.custom_to_vegetarian_dict[ingredient]
-        # randomly substitue a vegetarian protein if no custom substitution is found
-        return self.randomly_select(list(self.vegetarian_dict.keys()))
-
-
-    def get_meat_substitution(self, ingredient):
+    def substitue_with_meat(self, ingredient):
         if self.is_broth(ingredient):
             return 'chicken broth'
         if ingredient in self.custom_from_vegetarian_dict:
@@ -127,16 +94,8 @@ class ToVegetarian(Recipe):
         return False
 
 
-    def is_meat(self, ingredient):
-        if ingredient in self.meat_dict:
-            return True
-        if self.is_broth(ingredient):
-            return True
-        return False
-
-
     def is_vegetable(self, ingredient):
-        if ingredient in self.vegetarian_dict:
+        if ingredient in self.vegetarian_protein_ingredient:
             return True
         if self.is_broth(ingredient):
             return True
@@ -146,37 +105,39 @@ class ToVegetarian(Recipe):
     def generate_new_ingredients_and_sub_dict(self):
         sub_dict = {}
         new_ingredients = []
+        replacement_num = 0
 
         for line in self.ingredients:
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
 
-            # if ingredient is meat
-            if self.is_meat(ingredient):
-                sub = self.get_vegetarian_substitution(ingredient)
-                sub_dict[ingredient] = {}
+            # if ingredient is vegetable
+            if self.is_vegetable(ingredient):
+                if replacement_num < 2:
+                    sub = self.substitue_with_meat(ingredient)
+                    sub_dict[ingredient] = {}
 
-                # if ingredient is broth
-                if self.is_broth(ingredient):
-                    sub_measurement = measurement
-                    sub_preparation = None
-                    sub_descriptor = None
+                    sub_quantity = '1/2'
+                    sub_measurement = self.randomly_select(list(self.meat_dict[sub]['measurement']))
+                    sub_descriptor = self.randomly_select(list(self.meat_dict[sub]['descriptor']))
+                    sub_preparation = self.randomly_select(list(self.meat_dict[sub]['preparation']))
+
+                    # record substitution information
+                    sub_dict[ingredient]['substitution'] = sub
+                    sub_dict[ingredient]['measurement'] = sub_measurement
+                    sub_dict[ingredient]['descriptor'] = sub_descriptor
+                    sub_dict[ingredient]['preparation'] = sub_preparation
+
+                    # pick not None element only
+                    replacement = []
+                    for i in [sub_quantity, sub_measurement, sub_descriptor, sub]:
+                        if i is not None:
+                            replacement.append(i)
+                    new_ingredients.append(' '.join(replacement))
+
+                    # update replacement number
+                    replacement_num += 1
                 else:
-                    sub_measurement = self.randomly_select(list(self.vegetarian_dict[sub]['measurement']))
-                    sub_descriptor = self.randomly_select(list(self.vegetarian_dict[sub]['descriptor']))
-                    sub_preparation = self.randomly_select(list(self.vegetarian_dict[sub]['preparation']))
-
-                # record substitution information
-                sub_dict[ingredient]['substitution'] = sub
-                sub_dict[ingredient]['measurement'] = sub_measurement
-                sub_dict[ingredient]['descriptor'] = sub_descriptor
-                sub_dict[ingredient]['preparation'] = sub_preparation
-
-                # pick not None element only
-                replacement = []
-                for i in [quantity, sub_measurement, sub_descriptor, sub]:
-                    if i is not None:
-                        replacement.append(i)
-                new_ingredients.append(' '.join(replacement))
+                    new_ingredients.append(line)
             else:
                 new_ingredients.append(line)
         return new_ingredients, sub_dict
