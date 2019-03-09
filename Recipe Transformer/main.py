@@ -1,7 +1,7 @@
 import re
 import pickle
 
-from vegetarian import *
+from to_vegetarian import *
 import southeast_asian_transformation as southeast_asian
 import thai_transformation as thai
 import healthy_transformation as healthy
@@ -465,17 +465,19 @@ if __name__ == '__main__':
     display_recipe(recipe)
 
     option = None
-    possible_options = ['x', '0', '1', '2', '3', '4','5']
+    possible_options = ['x', '0', '1', '2', '3', '4', '5', '6']
 
     while (option != 'x'):
         print('\nNow transform original recipe to:')
         print('\tx. No transformation. Exit program.')
         print('\t0. No transformation. Show original recipe.')
-        print('\t1. Healthy')
-        print('\t2. Vegetarian')
-        print('\t3. Southeast Asian')
-        print('\t4. Thai')
-        print('\t5. Indian')
+        print('\t1. Vegetarian')
+        print('\t2. Non-vegetarian (if original recipe is vegetarian)')
+        print('\t3. Healthy')
+        print('\t4. Non-healthy (if original recipe is healthy)')
+        print('\t5. Southeast Asian')
+        print('\t6. Thai')
+        print('\t7. Indian')
 
         option = input('Please enter a character/number option: ')
         while (option not in possible_options):
@@ -488,16 +490,22 @@ if __name__ == '__main__':
             display_recipe(recipe)
 
         if option == '1':
+            vegetarian_recipe = ToVegetarian(url)
+            display_recipe(vegetarian_recipe)
+
+        if option == '2':
+            pass
+
+        if option == '3':
             new_recipe = Recipe(url)
             heal = healthy.healthy_transfer()
             new_recipe = heal.transform(new_recipe)
             display_recipe(new_recipe)
 
-        if option == '2':
-            vegetarian_recipe = Vegetarian(url)
-            display_recipe(vegetarian_recipe)
+        if option == '4':
+            pass
 
-        if option == '3':
+        if option == '5':
             # Southeast Asian transform
 
             # get new copy of recipe
@@ -524,11 +532,12 @@ if __name__ == '__main__':
                 display_recipe(new_recipe)
             pass
 
-        if option == '4':
+        if option == '6':
             new_recipe = Recipe(url)
-            # new_recipe = thai.transform(new_recipe)
+            new_recipe = thai.transform(new_recipe)
             display_recipe(new_recipe)
-        if option == '5':
+
+        if option == '7':
             new_recipe = Recipe(url)
-            # new_recipe = india.transform(new_recipe)
+            new_recipe = india.transform(new_recipe)
             display_recipe(new_recipe)
