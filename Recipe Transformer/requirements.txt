@@ -1,5 +1,5 @@
-requests>=2.20.0
-beautifulsoup4>=4.7.1
 nltk>=3.4
 spacy>=2.0.18
-selenium>=3.141.0
+Unidecode>=1.0.23
+requests>=2.20.0
+beautifulsoup4>=4.7.1
