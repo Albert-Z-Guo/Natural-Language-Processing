@@ -97,8 +97,6 @@ class ToNonVegetarian(Recipe):
     def is_vegetable(self, ingredient):
         if ingredient in self.vegetarian_protein_ingredient:
             return True
-        if self.is_broth(ingredient):
-            return True
         return False
 
 
