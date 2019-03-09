@@ -6,10 +6,11 @@ import requests
 from bs4 import BeautifulSoup
 from nltk import sent_tokenize
 from nltk.stem import PorterStemmer
+from vegetarian import *
 import southeast_asian_transformation as southeast_asian
-import thai_transformation as thai
-import healthy_transformation as healthy
-import india_transformation as india
+# import thai_transformation as thai
+# import healthy_transformation as healthy
+# import india_transformation as india
 
 nlp = spacy.load('en')
 
@@ -252,9 +253,9 @@ class Recipe:
         return quantity, measurement, descriptor, ingredient, preparation
 
 
-    def decompose_ingredients(self, ingredients):
+    def decompose_ingredients(self):
         print('Ingredients:')
-        for line in ingredients:
+        for line in self.ingredients:
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
             print('\t' + line)
             print('\t  quantity   :', quantity)
@@ -443,7 +444,7 @@ class Recipe:
 
 def display_recipe(recipe):
     print('\nRecipe name:\n' + recipe.name + '\n')
-    recipe.decompose_ingredients(recipe.ingredients)
+    recipe.decompose_ingredients()
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     print('\nCooking method(s):\n' + ', '.join(recipe.cooking_methods))
     print('\nCooking steps:')
@@ -491,7 +492,8 @@ if __name__ == '__main__':
             display_recipe(new_recipe)
 
         if option == '2':
-            pass
+            vegetarian_recipe = Vegetarian(recipe)
+            display_recipe(vegetarian_recipe)
 
         if option == '3':
             # Southeast Asian transform
@@ -522,10 +524,9 @@ if __name__ == '__main__':
 
         if option == '4':
             new_recipe = Recipe(url)
-            new_recipe = thai.transform(new_recipe)
+            # new_recipe = thai.transform(new_recipe)
             display_recipe(new_recipe)
         if option == '5':
             new_recipe = Recipe(url)
-            new_recipe = india.transform(new_recipe)
+            # new_recipe = india.transform(new_recipe)
             display_recipe(new_recipe)
-            
