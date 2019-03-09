@@ -7,6 +7,9 @@ from bs4 import BeautifulSoup
 from nltk import sent_tokenize
 from nltk.stem import PorterStemmer
 import southeast_asian_transformation as southeast_asian
+import thai_transformation as thai
+import healthy_transformation as healthy
+import india_transformation as india
 
 nlp = spacy.load('en')
 
@@ -459,7 +462,7 @@ if __name__ == '__main__':
     display_recipe(recipe)
 
     option = None
-    possible_options = ['x', '0', '1', '2', '3', '4']
+    possible_options = ['x', '0', '1', '2', '3', '4','5']
 
     while (option != 'x'):
         print('\nNow transform original recipe to:')
@@ -469,6 +472,7 @@ if __name__ == '__main__':
         print('\t2. Vegetarian')
         print('\t3. Southeast Asian')
         print('\t4. Thai')
+        print('\t5. India')
 
         option = input('Please enter a character/number option: ')
         while (option not in possible_options):
@@ -481,7 +485,10 @@ if __name__ == '__main__':
             display_recipe(recipe)
 
         if option == '1':
-            pass
+            new_recipe = Recipe(url)
+            heal = healthy.healthy_transfer()
+            new_recipe = heal.transform(new_recipe)
+            display_recipe(new_recipe)
 
         if option == '2':
             pass
@@ -499,4 +506,11 @@ if __name__ == '__main__':
             pass
 
         if option == '4':
-            pass
+            new_recipe = Recipe(url)
+            new_recipe = thai.transform(new_recipe)
+            display_recipe(new_recipe)
+        if option == '5':
+            new_recipe = Recipe(url)
+            new_recipe = india.transform(new_recipe)
+            display_recipe(new_recipe)
+            
