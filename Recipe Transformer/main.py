@@ -465,7 +465,7 @@ if __name__ == '__main__':
     display_recipe(recipe)
 
     option = None
-    possible_options = ['x', '0', '1', '2', '3', '4', '5', '6']
+    possible_options = ['x', '0', '1', '2', '3', '4', '5', '6', '7']
 
     while (option != 'x'):
         print('\nNow transform original recipe to:')
