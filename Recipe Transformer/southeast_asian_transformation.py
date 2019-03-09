@@ -51,22 +51,25 @@ def randomly_select(ls):
 
 def transform(recipe):
     recipe_name = recipe.name
-    need_eastasian_transform = True
 
     # if such words shows up in the recipe name, no transformation needed
     for word in east_asian_keywords:
         if word in recipe_name.lower():
             need_eastasian_transform = False
             print(word)
-            return need_eastasian_transform, recipe
+            return 0, recipe
 
     eastasian_ingredient_appearance_count = transform_ingredients(recipe)
     transform_directions(recipe)
 
+    if len(subsitute_dict.keys()) <= 1:
+        force_transform(recipe)
+        return 1, recipe
+
     # if (eastasian_ingredient_appearance_count > 4):
     #     need_eastasian_transform = False
     
-    return need_eastasian_transform, recipe
+    return 2, recipe
 
 def transform_ingredients(recipe):
     # count the appearing time for easiesian ingredients to determine whether it needs transformation
@@ -110,7 +113,7 @@ def transform_ingredients(recipe):
             
         else:
             for i in list(custom_to_eastasian_dict.keys()):
-                if i in ingredient or ingredient in i:
+                if (i in ingredient or ingredient in i) and custom_to_eastasian_dict[i] != ingredient:
                     sub = custom_to_eastasian_dict[i]
                     subsitute_dict[ingredient] = {}
                     subsitute_dict[ingredient]['substitution'] = sub
@@ -119,7 +122,7 @@ def transform_ingredients(recipe):
                     subsitute_dict[ingredient]['preparation'] = preparation
                     
                     # for situations like 'salted butter' / 'beef bouillon'
-                    if i != ingredient:
+                    if i != ingredient and len(ingredient.split()) > 1:
                         subsitute_dict[i] = {}
                         subsitute_dict[i]['substitution'] = sub
                         subsitute_dict[i]['measurement'] = measurement
@@ -148,3 +151,32 @@ def transform_directions(recipe):
         new_directions.append(new_direction)
 
     recipe.directions = new_directions
+
+def force_transform(recipe):
+    if len(subsitute_dict.keys()) == 1:
+        add_mix_southeast_asian_spice(recipe)
+    else:
+        add_southeast_asian_sauce(recipe)
+        add_mix_southeast_asian_spice(recipe)
+
+def add_mix_southeast_asian_spice(recipe):
+    # randomly choose 2 asia spice to add
+    spice_list = []
+    while len(spice_list) < 2:
+        spice_list.append(randomly_select(list(asian_spices)))
+        
+    for spice in spice_list:
+        new_ingredient = '1 tablespoon '+spice
+        recipe.ingredients.append(new_ingredient)
+        
+    new_direction = 'Mix {0} and {1} well and add to our cuisine for more flavor.'.format(spice_list[0], spice_list[1])
+    recipe.directions.append(new_direction)
+    print(new_direction)
+
+def add_southeast_asian_sauce(recipe):
+    sauce = randomly_select(list(asian_sauces))
+    recipe.ingredients.append('2 teaspoon of '+ sauce)
+    new_direction = 'Add some {} to adjust the taste.'.format(sauce)
+    recipe.directions.insert(-1, new_direction)
+    
+

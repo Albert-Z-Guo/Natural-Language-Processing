@@ -498,11 +498,26 @@ if __name__ == '__main__':
 
             # get new copy of recipe
             new_recipe = Recipe(url)
-            need_transform, new_recipe = southeast_asian.transform(new_recipe)
-            if need_transform:
-                display_recipe(new_recipe)
-            else:
+
+            # transform_status:
+            # 0: No need to transform, already southeast asia
+            # 1: No futher modification needed, but can generate a new recipe
+            # 2: Success
+            transform_status, new_recipe = southeast_asian.transform(new_recipe)
+            print(transform_status)
+            if transform_status == 0:
                 print('Already Southeast Style. No need to transform.')
+            elif transform_status == 1:
+                print('WARNING: Cannot be transform to southeast asia style!')
+                op = input('Do you still want to process?(y/n):')
+                if (op == 'y'):
+                    display_recipe(new_recipe)
+                elif (op == 'n'):
+                    pass
+                else:
+                    print('Please try another transform category.')
+            else:
+                display_recipe(new_recipe)
             pass
 
         if option == '4':
