@@ -53,7 +53,10 @@ class Recipe:
         if 'h' in self.cook_time:
             hour_index = self.cook_time.index('h')
             hours = int(self.cook_time[:hour_index].strip())
-            minutes = int(self.cook_time[hour_index+1 : -1].strip())
+            if 'm' in self.cook_time:
+                minutes = int(self.cook_time[hour_index+1 : -1].strip())
+            else:
+                minutes = 0
         else:
             hours = 0
             minutes = int(self.cook_time[: -1].strip())
@@ -459,6 +462,7 @@ if __name__ == '__main__':
 
     # url = 'https://www.allrecipes.com/recipe/73634/colleens-slow-cooker-jambalaya/'
     url = 'https://www.allrecipes.com/recipe/45736/chicken-tikka-masala'
+    url = 'https://www.allrecipes.com/recipe/185896/roasted-butternut-squash-soup-with-apples-and-bacon/?internalSource=staff%20pick&referringId=94&referringContentType=Recipe%20Hub&clickId=cardslot%202'
     print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
