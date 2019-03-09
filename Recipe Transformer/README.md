@@ -20,7 +20,9 @@ Tasks include:
 3. Ask the user what kind of transformation they want to do:
    - To and from vegetarian
    - To and from healthy
-   - Style of cuisine
+   - To Southeast Asian
+   - To Thai
+   - To Indian
 4. Transform the recipe along the requested dimension.
 5. Display the transformed recipe in a human-friendly format.
 
