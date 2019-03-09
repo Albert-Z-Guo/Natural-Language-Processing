@@ -41,6 +41,8 @@ class Recipe:
         times = set([element.text.strip() for element in self.soup.find_all(class_='prepTime__item')])
         # remove uncessary elements
         times.remove('')
+        prep_time = None
+        cook_time = None
         for time in times:
             if 'prep' in time.lower():
                 prep_time = time[4:]
@@ -50,6 +52,8 @@ class Recipe:
 
 
     def convert_to_minutes(self):
+        if self.cook_time is None:
+            return 0
         if 'h' in self.cook_time:
             hour_index = self.cook_time.index('h')
             hours = int(self.cook_time[:hour_index].strip())
@@ -425,7 +429,8 @@ class Recipe:
         prep_time = self.prep_time
         cook_time = self.cook_time
         directions = self.directions
-        average_cook_time_per_step = round(self.convert_to_minutes() / (len(directions) - 1))
+        if len(directions) > 1:
+            average_cook_time_per_step = round(self.convert_to_minutes() / (len(directions) - 1))
 
         for i, direction in enumerate(directions):
             print('Step:', i+1)
@@ -462,7 +467,6 @@ if __name__ == '__main__':
 
     # url = 'https://www.allrecipes.com/recipe/73634/colleens-slow-cooker-jambalaya/'
     url = 'https://www.allrecipes.com/recipe/45736/chicken-tikka-masala'
-    url = 'https://www.allrecipes.com/recipe/185896/roasted-butternut-squash-soup-with-apples-and-bacon/?internalSource=staff%20pick&referringId=94&referringContentType=Recipe%20Hub&clickId=cardslot%202'
     print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
@@ -486,7 +490,8 @@ if __name__ == '__main__':
         option = input('Please enter a character/number option: ')
         while (option not in possible_options):
             print('Invalid option! Try again.')
-
+            option = input('Please enter a character/number option: ')
+            
         if option == 'x':
             print('Exit program.')
 
