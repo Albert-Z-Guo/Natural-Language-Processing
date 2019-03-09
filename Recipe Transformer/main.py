@@ -1,18 +1,20 @@
 import re
 import pickle
 
-import spacy
-import requests
-from bs4 import BeautifulSoup
-from nltk import sent_tokenize
-from nltk.stem import PorterStemmer
 from vegetarian import *
 import southeast_asian_transformation as southeast_asian
 import thai_transformation as thai
 import healthy_transformation as healthy
 import india_transformation as india
 
+import spacy
+import requests
+from bs4 import BeautifulSoup
+from nltk import sent_tokenize
+from nltk.stem import PorterStemmer
+
 nlp = spacy.load('en')
+
 
 class Recipe:
     def __init__(self, url):
