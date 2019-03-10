@@ -4,7 +4,7 @@ import random
 from recipe import Recipe
 
 
-class ToVegetarian(Recipe):
+class Vegetarian(Recipe):
     def __init__(self, url):
         Recipe.__init__(self, url)
         self.name += ' Transformed to Vegetarian'

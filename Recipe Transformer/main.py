@@ -1,6 +1,6 @@
 from recipe import Recipe
-from to_vegetarian import ToVegetarian
-from to_non_vegetarian import ToNonVegetarian
+from vegetarian import Vegetarian
+from non_vegetarian import NonVegetarian
 import southeast_asian_transformation as southeast_asian
 import thai_transformation as thai
 import healthy_transformation as healthy
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         print('\t6. Thai')
         print('\t7. Indian')
 
-        option = input('Please enter a character/number option: ')
+        option = input('\nPlease enter a character/number option: ')
         while (option not in possible_options):
             print('Invalid option! Try again.')
             option = input('Please enter a character/number option: ')
@@ -71,11 +71,11 @@ if __name__ == '__main__':
             display_recipe(recipe)
 
         if option == '1':
-            vegetarian_recipe = ToVegetarian(url)
+            vegetarian_recipe = Vegetarian(url)
             display_recipe(vegetarian_recipe)
 
         if option == '2':
-            non_vegetarian_recipe = ToNonVegetarian(url)
+            non_vegetarian_recipe = NonVegetarian(url)
             display_recipe(non_vegetarian_recipe)
 
         if option == '3':
