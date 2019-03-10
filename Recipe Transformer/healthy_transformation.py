@@ -100,7 +100,9 @@ class healthy_transfer(object):
     # Transfer ingredients to healthy style
     def tohealthy_ingredients(self,ingredients):
         print("Transfer ingredients to healthy style...")
+        print("Ingredients Changes:")
         new_ingredients = set()
+        is_healthy = False
         num_change = 0
         for line in ingredients:
             new_line = line
@@ -129,9 +131,9 @@ class healthy_transfer(object):
                     print(str(num_change) + '. Change the ingredient "' + item + '" to "' + new_item + '".')
             new_ingredients.add(new_line)
         print('Transfer ends after '+str(num_change)+' times of changes.')
-        # print('The new ingredients:')
-        # pprint.pprint(new_ingredients)
-        return new_ingredients
+        if num_change < 3:
+            is_healthy = True
+        return new_ingredients,is_healthy
 
     # Transfer directions to healthy style
     def tohealthy_directions(self,directions):
@@ -148,13 +150,121 @@ class healthy_transfer(object):
                     print(str(num) + '. Change the ingredient "' + item + '" to "' + new_item + '".')
             new_directions.add(new_line)
         print('Transfer ends after ' + str(num) + ' times of changes.')
-        # print('The new directions:')
-        # pprint.pprint(new_directions)
         return new_directions
 
     def transform(self, recipe):
-        new_ingredients = self.tohealthy_ingredients(recipe.ingredients)
+        new_ingredients,is_healthy = self.tohealthy_ingredients(recipe.ingredients)
         new_directions = self.tohealthy_directions(recipe.directions)
+        if is_healthy == True:
+            print("***Notice: the recipe is healthy enough, you don't need to transfer it!")
+        recipe.directions = new_directions
+        recipe.ingredients = new_ingredients
+        return recipe
+
+    # Transfer ingredients to unhealthy style
+    def tounhealthy_ingredients(self, ingredients):
+        print("Transfer ingredients to unhealthy style...")
+        new_ingredients = set()
+        add_dict = []
+        dict = {"cheese":False, "cream":False, "butter":False, "sugar":False, "oil":False, "salt":False, "flour":False}
+        is_healthy = True
+        num_change = 0
+        print("Ingredients Changes:")
+        for line in ingredients:
+            new_line = line
+            # if unhealthy, helf the quantity
+            for record in ["cheese", "cream", "butter", "sugar", "oil", "salt", "flour"]:
+                if record in new_line:
+                    dict[record] = True
+                    list = new_line.split(' ')
+                    new_quantity = 0
+                    if '/' in list[0]:
+                        temp = list[0].split('/')
+                        new_quantity = float(temp[0]) / float(temp[1]) * 2
+                    if list[0].isdigit():
+                        new_quantity = float(list[0]) * 2
+                    if new_quantity > 0:
+                        old_quantity = list[0]
+                        list[0] = str(new_quantity)
+                        new_line = ' '.join(list)
+                        num_change = num_change + 1
+                        print(str(
+                            num_change) + '. Change the quantity of "' + record + '" from "' + old_quantity + '" to "' + str(
+                            new_quantity) + '".')
+            # if in unhealthy dict, change into its healthy alternatives
+            for item in self.from_healthy_dict.keys():
+                if item in new_line:
+                    new_item = self.from_healthy_dict[item]
+                    num_change = num_change + 1
+                    new_line = new_line.replace(item, new_item)
+                    print(str(num_change) + '. Change the ingredient "' + item + '" to "' + new_item + '".')
+            new_ingredients.add(new_line)
+
+        # If ingredient is already in the recipe, then don't add
+        if dict["cheese"] == False:
+            new_ingredients.add("chopped cheese")
+            num_change = num_change + 1
+            print(str(num_change) + '. Add chopped cheese')
+            add_dict.append("chopped cheese")
+        if dict["cream"] == False:
+            new_ingredients.add("2 tablespoon heavy cream")
+            num_change = num_change + 1
+            print(str(num_change) + '. Add 2 tablespoon heavy cream')
+            add_dict.append("2 tablespoon heavy cream")
+        if dict["sugar"] == False:
+            new_ingredients.add("2 tablespoon sugar")
+            num_change = num_change + 1
+            print(str(num_change) + '. Add 2 tablespoon sugar')
+            add_dict.append("2 tablespoon sugar")
+        if dict["butter"] == False:
+            new_ingredients.add("choppe butter")
+            num_change = num_change + 1
+            print(str(num_change) + '. Add chopped butter')
+            add_dict.append("choppe butter")
+        if dict["salt"] == False:
+            new_ingredients.add("2 tablespoon salt")
+            num_change = num_change + 1
+            print(str(num_change) + '. Add 2 tablespoon salt')
+            add_dict.append("2 tablespoon salt")
+        print('Transfer ends.')
+        if num_change < 3:
+            is_healthy = False
+        return new_ingredients,is_healthy, add_dict
+
+    # Transfer directions to unhealthy style
+    def tounhealthy_directions(self,directions, add_dict):
+        print("Transfer directions to unhealthy style...")
+        new_directions = set()
+        num = 0
+        for line in directions:
+            new_line = line
+            for item in self.from_healthy_dict.keys():
+                if item in new_line:
+                    new_item = self.from_healthy_dict[item]
+                    num = num + 1
+                    new_line = new_line.replace(item, new_item)
+                    print(str(num) + '. Change the ingredient "' + item + '" to "' + new_item + '".')
+            new_directions.add(new_line)
+
+        # add some unhealthy ingredient
+        str_temp = ""
+        for record in add_dict:
+            if str_temp == "":
+                str_temp = str_temp + record
+            else:
+                str_temp = str_temp + ', ' + record
+        str_temp = 'Mix ' + str_temp + ' together with other materials.'
+        new_directions.add(str_temp)
+        num = num + 1
+        print(str(num) + '. Add the direction "' + str_temp + '"')
+        print('Transfer ends.')
+        return new_directions
+
+    def transform_tounhealthy(self, recipe):
+        new_ingredients,is_healthy, add_dict = self.tounhealthy_ingredients(recipe.ingredients)
+        new_directions = self.tounhealthy_directions(recipe.directions,add_dict)
+        if is_healthy == False:
+            print("***Notice: the recipe is unhealthy enough, you don't need to transfer it!")
         recipe.directions = new_directions
         recipe.ingredients = new_ingredients
         return recipe
@@ -185,5 +295,6 @@ def test():
     th = healthy_transfer()
     th.tohealthy_ingredients(ingredients)
     th.tohealthy_directions(directions)
+
 
 # test()
