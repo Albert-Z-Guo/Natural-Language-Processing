@@ -2,7 +2,6 @@
 
 ## Project Description
 ### Recipe Transformer
-
 Tasks include:
 1. Accept the URL of a recipe from AllRecipes.com, and fetch the page.
 2. Parse the page into the recipe data representation:
@@ -36,8 +35,9 @@ Team Members:
 ### External Data Source
 * Tools:
   - [Kitchen Essential List: 71 of the Best Kitchen Cookware, Utensils, Tools & More](https://www.mealime.com/kitchen-essentials-list)
-* Cooking Methods:
+* Primary Cooking Methods:
   - [15 Basic Cooking Methods You Need to Know Slideshow](https://www.thedailymeal.com/cook/15-basic-cooking-methods-you-need-know-slideshow/slide-13)
+* Other Cooking Methods:
   - [Wikibooks: Cooking Techniques](https://en.wikibooks.org/wiki/Cookbook:Cooking_Techniques)
 * Spices and sauces:
   - [Britannica: List of herbs and spices](https://www.britannica.com/topic/list-of-herbs-and-spices-2024392)
