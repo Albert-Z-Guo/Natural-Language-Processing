@@ -264,11 +264,11 @@ class Recipe:
         for line in self.ingredients:
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
             print('\t' + line)
-            print('\t  quantity   :', quantity)
-            print('\t  measurement:', measurement)
-            print('\t  descriptor :', descriptor)
-            print('\t  ingredient :', ingredient)
-            print('\t  preparation:', preparation)
+            if quantity: print('\t  quantity   :', quantity)
+            if measurement: print('\t  measurement:', measurement)
+            if descriptor: print('\t  descriptor :', descriptor)
+            if ingredient: print('\t  ingredient :', ingredient)
+            if preparation: print('\t  preparation:', preparation)
             print()
 
 
@@ -421,6 +421,18 @@ class Recipe:
         return directions_methods
 
 
+    def extract_direction_time(self, direction):
+        times = []
+        for sentence in sent_tokenize(direction):
+            match = re.findall(re.compile(r'for .* minute[s]?\b|\d+ minute[s]?\b'), sentence)
+            if len(match) != 0:
+                for m in match:
+                    times.append(m.replace('for ', ''))
+        if len(times) == 0:
+            return None
+        return ' + '.join(times)
+
+
     def decompose_steps(self):
         prep_time = self.prep_time
         cook_time = self.cook_time
@@ -434,7 +446,10 @@ class Recipe:
             if i == 0:
                 print('\tPrep time:', prep_time)
             else:
-                print('\tEstimated average cook time: {0} m'.format(average_cook_time_per_step))
+                if self.extract_direction_time(direction):
+                    print('\testimated cook time: {0} minimum'.format(self.extract_direction_time(direction)))
+                else:
+                    print('\testimated cook time: {0} minutes minimum'.format(average_cook_time_per_step))
 
             single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
             single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))

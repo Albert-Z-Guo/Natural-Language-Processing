@@ -13,7 +13,7 @@ def display_recipe(recipe):
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     if len(recipe.cooking_methods) == 0:
         print('\nNo major cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
-        print(', '.join(list(verb.lower() for verb in recipe.directions_verbs)))
+        print(', '.join(verb.lower() for verb in recipe.directions_verbs))
     else:
         print('\nMajor cooking method(s):\n' + ', '.join(recipe.cooking_methods))
     print('\nCooking steps:')
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         option = input('\nPlease enter a character/number option: ')
         while (option not in possible_options):
             print('Invalid option! Try again.')
-            option = input('Please enter a character/number option: ')
+            option = input('\nPlease enter a character/number option: ')
 
         if option == 'x':
             print('Exit program.')
