@@ -450,7 +450,7 @@ class Recipe:
             return None
         if len(times) == 1:
             if 'minute' in times[-1]:
-                return str(extract_maximum_minutes(times[-1])) + ' minutes'
+                return str(self.extract_maximum_minutes(times[-1])) + ' minutes'
             return times[-1].replace('more ', '')
         if len(times) > 1:
             for time in times:
