@@ -35,21 +35,21 @@ Team Members:
 
 ### External Data Source
 * Tools:
-  * [Kitchen Essential List: 71 of the Best Kitchen Cookware, Utensils, Tools & More](https://www.mealime.com/kitchen-essentials-list)
+  - [Kitchen Essential List: 71 of the Best Kitchen Cookware, Utensils, Tools & More](https://www.mealime.com/kitchen-essentials-list)
 
 * Cooking Methods:
-  * [15 Basic Cooking Methods You Need to Know Slideshow](https://www.thedailymeal.com/cook/15-basic-cooking-methods-you-need-know-slideshow/slide-13)
-  * Other Cooking Methods
-    * [Wikibooks: Cooking Techniques](https://en.wikibooks.org/wiki/Cookbook:Cooking_Techniques)
+  - [15 Basic Cooking Methods You Need to Know Slideshow](https://www.thedailymeal.com/cook/15-basic-cooking-methods-you-need-know-slideshow/slide-13)
+  - Other Cooking Methods
+    - [Wikibooks: Cooking Techniques](https://en.wikibooks.org/wiki/Cookbook:Cooking_Techniques)
   
 * Spices and sauces:
-  * [Britannica: List of herbs and spices](https://www.britannica.com/topic/list-of-herbs-and-spices-2024392)
-  * [World Spice Merchant](https://www.worldspice.com/spices)
-  * [Wikipedia: List of sauces](https://en.wikipedia.org/wiki/List_of_sauces)
+  - [Britannica: List of herbs and spices](https://www.britannica.com/topic/list-of-herbs-and-spices-2024392)
+  - [World Spice Merchant](https://www.worldspice.com/spices)
+  - [Wikipedia: List of sauces](https://en.wikipedia.org/wiki/List_of_sauces)
 
-  * Southeast Asian spices and sauces:
-    * [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
-    * [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
+  - Southeast Asian spices and sauces:
+    - [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
+    - [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
 
 
 ## Getting Started
