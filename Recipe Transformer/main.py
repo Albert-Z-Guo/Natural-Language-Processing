@@ -12,7 +12,7 @@ def display_recipe(recipe):
     recipe.decompose_ingredients()
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     if len(recipe.cooking_methods) == 0:
-        print('\nNo major cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
+        print('\nNo primary cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
         print(', '.join(verb.lower() for verb in recipe.directions_verbs))
     else:
         print('\nMajor cooking method(s):\n' + ', '.join(recipe.cooking_methods))
@@ -29,7 +29,6 @@ if __name__ == '__main__':
     #url = 'https://www.allrecipes.com/recipe/59661/spinach-enchiladas/'
 
     # 0.pasta 1.soup 2.low-fat 3.cookies 4.vegetables 5.beef 6.cheese
-
     urls = ['https://www.allrecipes.com/recipe/261148/creamy-pasta-bake-with-cherry-tomatoes-and-basil/?internalSource=streams&referringId=95&referringContentType=Recipe%20Hub&clickId=st_trending_s',
            'https://www.allrecipes.com/recipe/13183/restaurant-style-zuppa-toscana/',
            'https://www.allrecipes.com/recipe/245863/chicken-stuffed-baked-avocados/?internalSource=streams&referringId=742&referringContentType=Recipe%20Hub&clickId=st_trending_b',
@@ -92,15 +91,11 @@ if __name__ == '__main__':
             display_recipe(new_recipe)
 
         if option == '5':
-            # Southeast Asian transform
-
-            # get new copy of recipe
-            new_recipe = Recipe(url)
-
             # transform_status:
             # 0: No need to transform, already southeast asia
             # 1: Dispalay the recipe
             # 2: No display needed
+            new_recipe = Recipe(url)
             transform_status, new_recipe = southeast_asian.transform(new_recipe)
             if transform_status == 0:
                 print('Already Southeast Style. No need to transform.')

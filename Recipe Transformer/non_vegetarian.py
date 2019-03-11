@@ -142,6 +142,7 @@ class NonVegetarian(Recipe):
 
 
     # expand sub_dict() for better granularity
+    # each ingredient is split up to individual words for substitution
     def generate_sub_dict_granular(self):
         sub_dict_granular = {}
         for ingredient in self.sub_dict.keys():
