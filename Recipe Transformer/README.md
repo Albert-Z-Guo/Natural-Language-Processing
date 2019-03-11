@@ -2,7 +2,7 @@
 
 ## Project Description
 ### Recipe Transformer
-Tasks include:
+#### Tasks include:
 1. Accept the URL of a recipe from AllRecipes.com, and fetch the page.
 2. Parse the page into the recipe data representation:
    - Ingredients
@@ -25,7 +25,7 @@ Tasks include:
 4. Transform the recipe along the requested dimension.
 5. Display the transformed recipe in a human-friendly format.
 
-External data source used:
+#### External data source used:
 * Tools:
   - [Kitchen Essential List: 71 of the Best Kitchen Cookware, Utensils, Tools & More](https://www.mealime.com/kitchen-essentials-list)
 * Primary Cooking Methods:
@@ -39,10 +39,11 @@ External data source used:
   - [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
   - [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
 
-Team Members:
+#### Team Members:
 - Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
 - Yunwen Wang [@OREOmini](https://github.com/OREOmini)
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
+
 
 ## Getting Started
 ### Environment Setup
