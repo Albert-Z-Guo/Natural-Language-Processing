@@ -1,2 +1,7 @@
+# byte code
+__pycache__/
+*.py[cod]
+*$py.class
+
 # OS file
 .DS_Store
