@@ -1,10 +1,10 @@
-#-*- coding:utf-8 _*-
-"""
+#-*- coding:utf-8 _*-  
+""" 
 @author:Xin TONG
-@file: custine.py
+@file: custine.py 
 @time: 2019/03/08
-@site:
-@software: PyCharm
+@site:  
+@software: PyCharm 
 """
 
 import pprint
@@ -99,7 +99,8 @@ def thaify_ingredients(ingredients,recipe_name):
         new_line = ingredient;
         line = ingredient.split(' ')
         for item in line:
-
+            if item == "curry":
+                continue
             if item in entree:
                 isentree = True
             if 'lemongrass' == item:
@@ -154,6 +155,7 @@ def thaify_ingredients(ingredients,recipe_name):
         new_ingredients.add("chopped basil")
         print(str(num_change) + ': Add "chopped basil"')
         add_dict.append("chopped basil")
+        num_change = num_change + 1
     # print('Transfer ends after ' + str(num_change) + ' times of changes.')
     if num_change < 3:
         print("\n***Notice: We don't recommend you to transfer it")
@@ -179,7 +181,6 @@ def thaify_directions(directions,subsitute_dict, add_dict,num):
             str_temp = str_temp + ', '+record
     str_temp = 'Mix '+ str_temp + 'together with other materials.'
     new_directions.add(str_temp)
-    num = num + 1
     print(str(num) + ': Add the direction "' + str_temp+'"')
 
     # print('Transfer ends after ' + str(num) + ' times of changes.')
@@ -193,7 +194,7 @@ def transform(recipe):
     new_directions = thaify_directions(recipe.directions, subsitute_dict, add_dict,num)
     recipe.directions = new_directions
     recipe.ingredients = new_ingredients
-    recipe.name = recipe.name + " (Transformed to Thai)"
+    recipe.name = recipe.name+"(Transformed to Thai)"
     return recipe
 
 
