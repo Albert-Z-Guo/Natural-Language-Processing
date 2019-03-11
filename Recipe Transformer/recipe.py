@@ -471,9 +471,9 @@ class Recipe:
                 print('\tPrep time:', prep_time)
             else:
                 if self.extract_direction_time(direction):
-                    print('\testimated cook time: about {0}'.format(self.extract_direction_time(direction)))
+                    print('\tEstimated cook time: about {0}'.format(self.extract_direction_time(direction)))
                 else:
-                    print('\testimated cook time: about {0} minutes'.format(average_cook_time_per_step))
+                    print('\tEstimated cook time: about {0} minutes'.format(average_cook_time_per_step))
 
             single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
             single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))

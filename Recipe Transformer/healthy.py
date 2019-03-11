@@ -1,10 +1,10 @@
-#-*- coding:utf-8 _*-  
-""" 
+#-*- coding:utf-8 _*-
+"""
 @author:Xin TONG
-@file: healthy.py 
+@file: healthy.py
 @time: 2019/03/06
-@site:  
-@software: PyCharm 
+@site:
+@software: PyCharm
 """
 import requests
 from bs4 import BeautifulSoup
@@ -268,7 +268,7 @@ class healthy_transfer(object):
             print("\n***Notice: the recipe is unhealthy enough, you don't need to transfer it!")
         recipe.directions = new_directions
         recipe.ingredients = new_ingredients
-        recipe.name = recipe.name + "(Transfered to unhealthy)"
+        recipe.name = recipe.name + " (Transfered to unhealthy)"
         return recipe
 
 
