@@ -193,7 +193,7 @@ def transform(recipe):
     new_directions = indiafy_directions(recipe.directions, subsitute_dict, add_dict,num)
     recipe.directions = new_directions
     recipe.ingredients = new_ingredients
-    recipe.name = recipe.name + " (Transfered to Indian)"
+    recipe.name = recipe.name + " (Transformed to Indian)"
     return recipe
 
 

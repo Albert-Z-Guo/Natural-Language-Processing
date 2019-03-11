@@ -268,7 +268,7 @@ class healthy_transfer(object):
             print("\n***Notice: the recipe is unhealthy enough, you don't need to transfer it!")
         recipe.directions = new_directions
         recipe.ingredients = new_ingredients
-        recipe.name = recipe.name + " (Transfered to unhealthy)"
+        recipe.name = recipe.name + " (Transformed to Unhealthy)"
         return recipe
 
 
