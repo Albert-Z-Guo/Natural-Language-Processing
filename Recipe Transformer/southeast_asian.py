@@ -60,6 +60,7 @@ def transform(recipe):
             # print(word)
             return 0, recipe
 
+    recipe.name += ' (Transformed to Southeast Asian)'
     transform_ingredients(recipe)
     transform_directions(recipe)
 
@@ -78,7 +79,7 @@ def transform(recipe):
     for ingre in list(subsitute_dict.keys()):
         print('{0}. Change ingredient {1} into {2}.'.format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
         transform_log_index += 1
-        
+    add_southeast_asian_sauce(recipe)
     return 1, recipe
 
 def transform_ingredients(recipe):
@@ -199,7 +200,7 @@ def add_southeast_asian_sauce(recipe):
 
     # print the sauce adding
     global transform_log_index
-    print('{0}. Add 2 tablespoon {1} for more southeast asia flavor.'.format(transform_log_index, sauce))
+    print('{0}. Add 2 tablespoon {1} for more southeast asian flavor.'.format(transform_log_index, sauce))
     transform_log_index += 1
     print('{0}. Add new directiion "{1}".'.format(transform_log_index, new_direction))
     transform_log_index += 1
