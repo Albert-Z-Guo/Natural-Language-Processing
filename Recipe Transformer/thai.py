@@ -1,10 +1,10 @@
-#-*- coding:utf-8 _*-  
-""" 
+#-*- coding:utf-8 _*-
+"""
 @author:Xin TONG
-@file: custine.py 
-@time: 2019/03/08
-@site:  
-@software: PyCharm 
+@file: custine.py
+@time: 2019/03/11
+@site:
+@software: PyCharm
 """
 
 import pprint
@@ -194,7 +194,7 @@ def transform(recipe):
     new_directions = thaify_directions(recipe.directions, subsitute_dict, add_dict,num)
     recipe.directions = new_directions
     recipe.ingredients = new_ingredients
-    recipe.name = recipe.name+"(Transformed to Thai)"
+    recipe.name = recipe.name + " (Transformed to Thai)"
     return recipe
 
 
