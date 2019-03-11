@@ -73,7 +73,7 @@ banned  = ['cow', 'beef', 'steak', 'filet', 'mignon', 'brisket', 'pork','hotdog'
 
 def indiafy_ingredients(ingredients,recipe_name):
 
-    print('Indiafy ingredients...')
+    print("\nIngredients Change(s):")
 
     # If the recipe is an entree (pasta, rice, soup, the likes), then add coconut milk and fish sauce
     num_change = 1
@@ -102,7 +102,7 @@ def indiafy_ingredients(ingredients,recipe_name):
             # गाय हमारी माता हे !!!! don't eat cows; also pork
             if item in banned:
                 sub_meat = "lamb"
-                print(str(num_change) + '. Change ' + item + ' into ' + sub_meat)
+                print(str(num_change) + ': "' + item + '" to "' + sub_meat +'"')
                 subsitute_dict[item] = sub_meat
                 new_line = new_line.replace(item, sub_meat)
                 num_change = num_change + 1
@@ -110,7 +110,7 @@ def indiafy_ingredients(ingredients,recipe_name):
             if item in sauces and item not in asian_sauces:
                 sub_sauce = choice(list(asian_sauces))
                 # get different substitution sauce
-                print(str(num_change)+'. Change '+item+' into '+sub_sauce)
+                print(str(num_change)+': "'+item+'" to "'+sub_sauce +'"')
                 subsitute_dict[item] = sub_sauce
                 new_line = new_line.replace(item, sub_sauce)
                 num_change = num_change+1
@@ -118,7 +118,7 @@ def indiafy_ingredients(ingredients,recipe_name):
             if item in spices and item not in asian_spices:
                 sub_spice = choice(list(asian_spices))
                 # get different substitution spice
-                print(str(num_change)+'. Change '+item+' into '+sub_spice)
+                print(str(num_change)+': "'+item+'" to "'+sub_spice +'"')
                 subsitute_dict[item] = sub_spice
                 new_line = new_line.replace(item, sub_spice)
                 num_change = num_change+1
@@ -128,49 +128,47 @@ def indiafy_ingredients(ingredients,recipe_name):
     #if it doesn't have curry
     if india_dict["curry"] == False:
         new_ingredients.add("2 tablespoon curry")
-        print(str(num_change) + '. Add 2 tablespoon curry')
+        print(str(num_change) + ': Add "2 tablespoon curry"')
         add_dict.append("2 tablespoon curry")
         num_change = num_change + 1
 
     # Makeing it hot (for all recipes)
     if india_dict["chili"] == False and india_dict["chilies"] == False:
         new_ingredients.add("1/4 cups dried chilies")
-        print(str(num_change) + '. Add 1/4 cups dried chilies')
+        print(str(num_change) + ': Add "1/4 cups dried chilies"')
         add_dict.append("1/4 cups dried chilies")
         num_change = num_change + 1
 
     # If ingredient is already in the recipe, then don't add
     if india_dict["cardamom"] == False:
         new_ingredients.add("chopped cardamom")
-        print(str(num_change) + '. Add chopped cardamom')
+        print(str(num_change) + ': Add c"hopped cardamom"')
         add_dict.append("chopped cardamom")
         num_change = num_change + 1
     if india_dict["cinnamon"] == False:
         new_ingredients.add("chopped cinnamon")
-        print(str(num_change) + '. Add chopped cinnamon')
+        print(str(num_change) + ': Add "chopped cinnamon"')
         add_dict.append("chopped cinnamon")
         num_change = num_change + 1
     if india_dict["turmeric"] == False:
         new_ingredients.add("chopped turmeric")
-        print(str(num_change) + '. Add chopped turmeric')
+        print(str(num_change) + ': Add "chopped turmeric"')
         add_dict.append("chopped turmeric")
-    print('Transfer ends after ' + str(num_change) + ' times of changes.')
+    # print('Transfer ends after ' + str(num_change) + ' times of changes.')
     # if num_change < 2:
     #     print("Notice!!! We don't recommend you to do that!")
-    return new_ingredients,subsitute_dict, add_dict
+    return new_ingredients,subsitute_dict, add_dict,num_change
 
-def indiafy_directions(directions,subsitute_dict, add_dict):
-    print("Indiafy directions...")
+def indiafy_directions(directions,subsitute_dict, add_dict,num):
     new_directions = set()
-    num = 0
     for line in directions:
         new_line = line
         for old_item in subsitute_dict.keys():
             if old_item in new_line:
                 subsitute = subsitute_dict[old_item]
                 new_line = new_line.replace(old_item,subsitute)
-                num = num + 1
-                print(str(num) + '. Change the ingredient "' + old_item + '" to "' + subsitute + '".')
+                # num = num + 1
+                # print(str(num) + ': Change the ingredient "' + old_item + '" to "' + subsitute + '".')
         new_directions.add(new_line)
 
     str_temp = ""
@@ -182,33 +180,33 @@ def indiafy_directions(directions,subsitute_dict, add_dict):
     str_temp = 'Mix '+ str_temp + 'together with other materials.'
     new_directions.add(str_temp)
     num = num + 1
-    print(str(num) + '. Add the direction "' + str_temp+'"')
+    print(str(num) + ': Add the direction "' + str_temp+'"')
 
-    print('Transfer ends after ' + str(num) + ' times of changes.')
+    # print('Transfer ends after ' + str(num) + ' times of changes.')
     # print('The new directions:')
     # pprint.pprint(new_directions)
     return new_directions
 
 
 def transform(recipe):
-    new_ingredients, subsitute_dict, add_dict = indiafy_ingredients(recipe.ingredients,recipe.name)
-    new_directions = indiafy_directions(recipe.directions, subsitute_dict, add_dict)
+    new_ingredients, subsitute_dict, add_dict,num = indiafy_ingredients(recipe.ingredients,recipe.name)
+    new_directions = indiafy_directions(recipe.directions, subsitute_dict, add_dict,num)
     recipe.directions = new_directions
     recipe.ingredients = new_ingredients
     return recipe
 
 
-def test():
-    url = 'https://www.allrecipes.com/recipe/44868/spicy-garlic-lime-chicken/'
-    recipe = utils.Recipe(url)
-    recipe_name = recipe.name
-    ingredients = recipe.ingredients
-    directions = recipe.directions
-    new_ingredients, subsitute_dict, add_dict = indiafy_ingredients(ingredients, recipe_name)
-    pprint.pprint(new_ingredients)
-    pprint.pprint(subsitute_dict)
-    pprint.pprint(add_dict)
-    new_directions = indiafy_directions(directions, subsitute_dict, add_dict)
-    pprint.pprint(new_directions)
+# def test():
+#     url = 'https://www.allrecipes.com/recipe/44868/spicy-garlic-lime-chicken/'
+#     recipe = utils.Recipe(url)
+#     recipe_name = recipe.name
+#     ingredients = recipe.ingredients
+#     directions = recipe.directions
+#     new_ingredients, subsitute_dict, add_dict = indiafy_ingredients(ingredients, recipe_name)
+#     pprint.pprint(new_ingredients)
+#     pprint.pprint(subsitute_dict)
+#     pprint.pprint(add_dict)
+#     new_directions = indiafy_directions(directions, subsitute_dict, add_dict)
+#     pprint.pprint(new_directions)
 
 # test()
