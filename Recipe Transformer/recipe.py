@@ -221,12 +221,19 @@ class Recipe:
         if ingredient == '':
             ingredient = ingredient_name
 
-        # add prepreparation to descriptor
+        # cases to add to descriptor
         if pre_preparation:
             if descriptor is None:
                 descriptor = ', '.join(pre_preparation)
             else:
                 descriptor += ', ' + ', '.join(pre_preparation)
+
+        if preparation and 'or' in preparation:
+            if descriptor is None:
+                descriptor = preparation
+            else:
+                descriptor += ', ' + preparation
+            preparation = None
 
         # add 'to taste' to quantity if any
         if 'to taste' in ingredient:
