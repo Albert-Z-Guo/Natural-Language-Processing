@@ -21,29 +21,7 @@ def display_recipe(recipe):
 
 
 if __name__ == '__main__':
-    # url = input('Please enter a recipe url: ')
-
-    # '1', '2', '3', '4', '5', '6'
-    urls = ['https://www.allrecipes.com/recipe/59661/spinach-enchiladas/',
-            'https://www.allrecipes.com/recipes/11978/everyday-cooking/cookware-and-equipment/pressure-cooker/',
-            'https://www.allrecipes.com/recipe/256021/ultimate-tofu-breakfast-burrito-bowls/',
-            'https://www.allrecipes.com/recipe/80398/serbian-cevapcici/',
-            'https://www.allrecipes.com/recipe/228240/bibimbap-korean-rice-with-mixed-vegetables/',
-            'https://www.allrecipes.com/recipe/257938/spicy-thai-basil-chicken-pad-krapow-gai/',
-            'https://www.allrecipes.com/recipes/17136/world-cuisine/asian/indian/main-dishes/'
-    ]
-
-    # 0.pasta 1.soup 2.low-fat 3.cookies 4.vegetables 5.beef 6.cheese
-    # urls = ['https://www.allrecipes.com/recipe/261148/creamy-pasta-bake-with-cherry-tomatoes-and-basil/?internalSource=streams&referringId=95&referringContentType=Recipe%20Hub&clickId=st_trending_s',
-    #        'https://www.allrecipes.com/recipe/13183/restaurant-style-zuppa-toscana/',
-    #        'https://www.allrecipes.com/recipe/245863/chicken-stuffed-baked-avocados/?internalSource=streams&referringId=742&referringContentType=Recipe%20Hub&clickId=st_trending_b',
-    #        'https://www.allrecipes.com/recipe/241752/homemade-samoa-cookies/?internalSource=streams&referringId=362&referringContentType=Recipe%20Hub&clickId=st_trending_s',
-    #        'https://www.allrecipes.com/recipe/86687/broccoli-with-garlic-butter-and-cashews/?internalSource=hub%20recipe&referringId=225&referringContentType=Recipe%20Hub&clickId=cardslot%2013',
-    #        'https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=200&referringContentType=Recipe%20Hub&clickId=cardslot%204',
-    #        'https://www.allrecipes.com/recipe/246771/gluten-free-mac-n-cheese/?internalSource=staff%20pick&referringId=509&referringContentType=Recipe%20Hub&clickId=cardslot%202'
-    # ]
-
-    url = urls[4]
+    url = input('Please enter a recipe url: ')
     print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
