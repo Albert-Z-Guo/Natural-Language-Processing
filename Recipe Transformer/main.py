@@ -38,8 +38,8 @@ if __name__ == '__main__':
                'https://www.allrecipes.com/recipe/246771/gluten-free-mac-n-cheese/?internalSource=staff%20pick&referringId=509&referringContentType=Recipe%20Hub&clickId=cardslot%202'
                ]
 
-    url = url_set[3]
-    print('\nInput url:\n' + url)
+    url = url_set[1]
+    # print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
     display_recipe(recipe)
@@ -101,21 +101,12 @@ if __name__ == '__main__':
             # 1: No futher modification needed, but can generate a new recipe
             # 2: Success
             transform_status, new_recipe = southeast_asian.transform(new_recipe)
-            print(transform_status)
             if transform_status == 0:
                 print('Already Southeast Style. No need to transform.')
             elif transform_status == 1:
-                print('WARNING: Cannot be transform to southeast asia style!')
-                op = input('Do you still want to process?(y/n):')
-                if (op == 'y'):
-                    display_recipe(new_recipe)
-                elif (op == 'n'):
-                    pass
-                else:
-                    print('Please try another transform category.')
+                display_recipe(recipe)
             else:
-                display_recipe(new_recipe)
-            pass
+                pass
 
         if option == '6':
             new_recipe = Recipe(url)
