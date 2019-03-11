@@ -31,6 +31,21 @@ Team Members:
 - Yunwen Wang [@OREOmini](https://github.com/OREOmini)
 - Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
 
+
+
+### Data Source
+
+* For the spices and sauces data:
+  * [Britannica: List of herbs and spices](https://www.britannica.com/topic/list-of-herbs-and-spices-2024392)
+  * [World Spice Merchant](https://www.worldspice.com/spices)
+  * [Wiki: List of sauces](https://en.m.wikipedia.org/wiki/List_of_sauces)
+
+* For the Southeast Asian spices and sauces:
+
+  * [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
+  * [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
+
+
 ## Getting Started
 ### Environment Setup
 To install all the libraries/dependencies and prepare data used in this project, run
