@@ -432,7 +432,7 @@ class Recipe:
     def extract_direction_time(self, direction):
         times = []
         for sentence in sent_tokenize(direction):
-            match = re.findall(re.compile(r'for .* minute[s]?\b|\d+ minute[s]?\b'), sentence)
+            match = re.findall(re.compile(r'\d+.*second[s]?\b|\d+.*minute[s]?\b'), sentence)
             if len(match) != 0:
                 for m in match:
                     times.append(m.replace('for ', ''))
@@ -455,9 +455,9 @@ class Recipe:
                 print('\tPrep time:', prep_time)
             else:
                 if self.extract_direction_time(direction):
-                    print('\testimated cook time: {0} minimum'.format(self.extract_direction_time(direction)))
+                    print('\testimated cook time: about {0}'.format(self.extract_direction_time(direction)))
                 else:
-                    print('\testimated cook time: {0} minutes minimum'.format(average_cook_time_per_step))
+                    print('\testimated cook time: about {0} minutes'.format(average_cook_time_per_step))
 
             single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
             single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))
