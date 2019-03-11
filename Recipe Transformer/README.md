@@ -25,14 +25,7 @@ Tasks include:
 4. Transform the recipe along the requested dimension.
 5. Display the transformed recipe in a human-friendly format.
 
-Team Members:
-- Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
-- Yunwen Wang [@OREOmini](https://github.com/OREOmini)
-- Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
-
-
-
-### External Data Source
+External data source used:
 * Tools:
   - [Kitchen Essential List: 71 of the Best Kitchen Cookware, Utensils, Tools & More](https://www.mealime.com/kitchen-essentials-list)
 * Primary Cooking Methods:
@@ -46,6 +39,10 @@ Team Members:
   - [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
   - [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
 
+Team Members:
+- Xin Tong [@XinTongBUPT](https://github.com/XinTongBUPT)
+- Yunwen Wang [@OREOmini](https://github.com/OREOmini)
+- Zunran Guo [@Albert-Z-Guo](https://github.com/Albert-Z-Guo) 
 
 ## Getting Started
 ### Environment Setup
