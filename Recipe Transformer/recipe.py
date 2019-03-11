@@ -429,16 +429,34 @@ class Recipe:
         return directions_methods
 
 
+    def extract_maximum_minutes(self, time):
+        match = re.findall(re.compile(r'[1-9]*[0-9]'), time)
+        if 'minute' in time:
+            return int(match[-1])
+        if 'second' in time:
+            return round(int(match[-1])/60, 2)
+        return 0
+
+
     def extract_direction_time(self, direction):
+        total_time = 0
         times = []
         for sentence in sent_tokenize(direction):
             match = re.findall(re.compile(r'\d+.*second[s]?\b|\d+.*minute[s]?\b'), sentence)
             if len(match) != 0:
                 for m in match:
-                    times.append(m.replace('for ', ''))
+                    times.append(m)
+
         if len(times) == 0:
             return None
-        return ' + '.join(times)
+
+        if len(times) == 1:
+            return times[-1].replace('more ', '')
+
+        if len(times) > 1:
+            for time in times:
+                total_time += self.extract_maximum_minutes(time)
+            return str(total_time) + ' minutes'
 
 
     def decompose_steps(self):
