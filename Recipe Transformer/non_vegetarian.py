@@ -7,7 +7,7 @@ from recipe import Recipe
 class NonVegetarian(Recipe):
     def __init__(self, url):
         Recipe.__init__(self, url)
-        self.name += ' Transformed to Non-vegetarian'
+        self.name += ' (Transformed to Non-vegetarian)'
         # load scraped data:
         # 4 pages of vegetarian protein recipes
         # 6 pages of meat recipes
