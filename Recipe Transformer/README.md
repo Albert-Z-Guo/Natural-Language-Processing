@@ -75,7 +75,7 @@
 
 ## Getting Started
 ### Environment Setup
-to install all libraries/dependencies used in this project, run
+To install all libraries/dependencies used in this project, run
 ```bash
 bash install.sh
 ```
