@@ -39,6 +39,7 @@ custom_to_eastasian_dict = {
 }
 east_asian_keywords = ['asia', 'east asia', 'south asian', 'thai', 'chinese', 'japan', 'korea', 'malaysia', 'indonesia','vietnam']
 subsitute_dict = {}
+transform_log_index = 1
 
 def randomly_select(ls):
     if len(ls) == 0 or (len(ls) == 1 and ls[0] is None):
@@ -51,25 +52,34 @@ def randomly_select(ls):
 
 def transform(recipe):
     recipe_name = recipe.name
+    global transform_log_index
 
     # if such words shows up in the recipe name, no transformation needed
     for word in east_asian_keywords:
         if word in recipe_name.lower():
-            need_eastasian_transform = False
-            print(word)
+            # print(word)
             return 0, recipe
 
-    eastasian_ingredient_appearance_count = transform_ingredients(recipe)
+    transform_ingredients(recipe)
     transform_directions(recipe)
 
-    if len(subsitute_dict.keys()) <= 1:
-        force_transform(recipe)
-        return 1, recipe
-
-    # if (eastasian_ingredient_appearance_count > 4):
-    #     need_eastasian_transform = False
+    if len(subsitute_dict.keys()) <= 2:
+        print('WARNING: Cannot be transform to southeast asia style!')
+        op = input('Do you still want to process?(y/n):')
+        if (op == 'y'):
+            force_transform(recipe)
+            return 1, recipe
+        else:
+            print('Please try another transform category.')
+            return 2, recipe
     
-    return 2, recipe
+    # print the transformed ingredient
+    print('\nHere are the changes for southeast asian style:\n')
+    for ingre in list(subsitute_dict.keys()):
+        print('{0}. Change ingredient {1} into {2}.'.format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
+        transform_log_index += 1
+        
+    return 1, recipe
 
 def transform_ingredients(recipe):
     # count the appearing time for easiesian ingredients to determine whether it needs transformation
@@ -109,7 +119,7 @@ def transform_ingredients(recipe):
             subsitute_dict[ingredient]['descriptor'] = None
             subsitute_dict[ingredient]['preparation'] = None
 
-            new_ingredient = ' '.join([quantity, measurement, sub_spice])
+            new_ingredient = ' '.join([quantity, measurement, sub_sauce])
             
         else:
             for i in list(custom_to_eastasian_dict.keys()):
@@ -138,7 +148,6 @@ def transform_ingredients(recipe):
 
         new_ingredients.append(new_ingredient)
     recipe.ingredients = new_ingredients
-    return eastasian_ingredient_appearance_count
 
 def transform_directions(recipe):
     new_directions = []
@@ -153,11 +162,15 @@ def transform_directions(recipe):
     recipe.directions = new_directions
 
 def force_transform(recipe):
-    if len(subsitute_dict.keys()) == 1:
-        add_mix_southeast_asian_spice(recipe)
-    else:
-        add_southeast_asian_sauce(recipe)
-        add_mix_southeast_asian_spice(recipe)
+    # print the transformed ingredient
+    global transform_log_index
+    print('\nHere are the changes for southeast asian style:\n')
+    for ingre in list(subsitute_dict.keys()):
+        print('{0}. Change ingredient {1} into {2}.'.format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
+        transform_log_index += 1
+
+    add_southeast_asian_sauce(recipe)
+    add_mix_southeast_asian_spice(recipe)
 
 def add_mix_southeast_asian_spice(recipe):
     # randomly choose 2 asia spice to add
@@ -171,12 +184,25 @@ def add_mix_southeast_asian_spice(recipe):
         
     new_direction = 'Mix {0} and {1} well and add to our cuisine for more flavor.'.format(spice_list[0], spice_list[1])
     recipe.directions.append(new_direction)
-    print(new_direction)
+
+    # print the spice adding
+    global transform_log_index
+    print('{0}. Add 1 tablespoon {1} and {2} for more southeast asia flavor.'.format(transform_log_index, spice_list[0], spice_list[1]))
+    transform_log_index += 1
+    print('{0}. Add new directiion "{1}".'.format(transform_log_index, new_direction))
+    transform_log_index += 1
 
 def add_southeast_asian_sauce(recipe):
     sauce = randomly_select(list(asian_sauces))
-    recipe.ingredients.append('2 teaspoon of '+ sauce)
+    recipe.ingredients.append('2 teaspoons of '+ sauce)
     new_direction = 'Add some {} to adjust the taste.'.format(sauce)
+
+    # print the sauce adding
+    global transform_log_index
+    print('{0}. Add 2 tablespoon {1} for more southeast asia flavor.'.format(transform_log_index, sauce))
+    transform_log_index += 1
+    print('{0}. Add new directiion "{1}".'.format(transform_log_index, new_direction))
+    transform_log_index += 1
     recipe.directions.insert(-1, new_direction)
     
 
