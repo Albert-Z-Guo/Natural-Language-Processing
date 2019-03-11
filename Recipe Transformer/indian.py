@@ -142,7 +142,7 @@ def indiafy_ingredients(ingredients,recipe_name):
     # If ingredient is already in the recipe, then don't add
     if india_dict["cardamom"] == False:
         new_ingredients.add("chopped cardamom")
-        print(str(num_change) + ': Add c"hopped cardamom"')
+        print(str(num_change) + ': Add "chopped cardamom"')
         add_dict.append("chopped cardamom")
         num_change = num_change + 1
     if india_dict["cinnamon"] == False:
