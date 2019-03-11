@@ -93,15 +93,16 @@ class Recipe:
         return True
 
 
-    def nouns_only(self, line):
+    def nouns_only(line):
+        noun_types = ['NN', 'NNS', 'NNP', 'NNPS']
         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'cilantro', 'such']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
-        token_tag_pairs = self.tokenize(line)
+        token_tag_pairs = tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
-            if (not (pair[1] == "NN" or pair[1] == "NNS") or pair[0] in adjective_type_exceptions) and pair[0] not in noun_type_exceptions:
+            if (not (pair[1] in noun_types) or pair[0] in adjective_type_exceptions) and pair[0] not in noun_type_exceptions:
                 return False
         return True
 
@@ -126,7 +127,7 @@ class Recipe:
 
     def extract_descriptor(self, ingredient_name):
         noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
-        adjective_type_exceptions = ['ground', 'skinless', 'boneless']
+        adjective_type_exceptions = ['ground', 'skinless', 'boneless', 'Parmesan']
         descriptor = []
         token_tag_pairs = []
 
@@ -220,7 +221,7 @@ class Recipe:
         if ingredient == '':
             ingredient = ingredient_name
 
-        # add prepreparation to descriptor or preparation
+        # add prepreparation to descriptor
         if pre_preparation:
             if descriptor is None:
                 descriptor = ', '.join(pre_preparation)
