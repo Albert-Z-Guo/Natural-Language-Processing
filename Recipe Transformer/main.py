@@ -99,8 +99,8 @@ if __name__ == '__main__':
 
             # transform_status:
             # 0: No need to transform, already southeast asia
-            # 1: No futher modification needed, but can generate a new recipe
-            # 2: Success
+            # 1: Dispalay the recipe
+            # 2: No display needed
             transform_status, new_recipe = southeast_asian.transform(new_recipe)
             if transform_status == 0:
                 print('Already Southeast Style. No need to transform.')
