@@ -10,6 +10,7 @@ from nltk.stem import PorterStemmer
 
 nlp = spacy.load('en')
 
+NOUN_TYPES = ['NN', 'NNS', 'NNP', 'NNPS']
 NOUN_TYPE_EXCEPTIONS = ['gochujang', 'parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
 ADJECTIVE_TYPE_EXCEPTIONS = ['ground', 'skinless', 'boneless', 'Parmesan']
 
@@ -97,13 +98,12 @@ class Recipe:
 
 
     def nouns_only(self, line):
-        noun_types = ['NN', 'NNS', 'NNP', 'NNPS']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
         token_tag_pairs = self.tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
-            if (not (pair[1] in noun_types) or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS) and pair[0] not in NOUN_TYPE_EXCEPTIONS:
+            if (not (pair[1] in NOUN_TYPES) or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS) and pair[0] not in NOUN_TYPE_EXCEPTIONS:
                 return False
         return True
 
@@ -288,7 +288,7 @@ class Recipe:
             token_tag_pairs = self.tokenize(ingredient)
             for pair in token_tag_pairs:
                 if len(pair[0]) > 1:
-                    if (pair[1] == 'NN' or pair[1] == 'NNS') and pair[0] != 'ground':
+                    if pair[1] in NOUN_TYPES and pair[0] != 'ground':
                         ingredients_nouns |= {pair[0]}
         # start from the longest
         return sorted((list(ingredients_nouns)), key=len)[::-1]
@@ -323,7 +323,7 @@ class Recipe:
                 for pair in token_tag_pairs:
                     # avoid case like 'degrees C'
                     if len(pair[0]) > 1:
-                        if (pair[1] == 'NN' or pair[1] == 'NNS') and pair[0] != 'ground':
+                        if pair[1] in NOUN_TYPES and pair[0] != 'ground':
                             directions_nouns |= {pair[0]}
         return directions_nouns
 
@@ -349,9 +349,11 @@ class Recipe:
     def extract_tools(self, directions_nouns):
         tools = self.retrieve_tools_set()
         directions_tools = set()
+        tools_identified = set()
         for noun in directions_nouns:
-            if PorterStemmer().stem(noun) in tools:
+            if PorterStemmer().stem(noun) in tools and PorterStemmer().stem(noun) not in tools_identified:
                 directions_tools |= {noun}
+                tools_identified |= {PorterStemmer().stem(noun)}
         return directions_tools
 
 
