@@ -451,12 +451,12 @@ class Recipe:
             return None
         if len(times) == 1:
             if 'minute' in times[-1]:
-                return str(self.extract_maximum_minutes(times[-1])) + ' minutes'
+                return str(self.extract_maximum_minutes(times[-1])) + ' m'
             return times[-1].replace('more ', '')
         if len(times) > 1:
             for time in times:
                 total_time += self.extract_maximum_minutes(time)
-            return str(total_time) + ' minutes'
+            return str(total_time) + ' m'
 
 
     def decompose_steps(self):
@@ -470,20 +470,20 @@ class Recipe:
             print('Step:', i+1)
             print(direction)
             if i == 0:
-                print('\tPrep time:', prep_time)
+                print('\tPrep time          :', prep_time)
             else:
                 if self.extract_direction_time(direction):
                     print('\tEstimated cook time: about {0}'.format(self.extract_direction_time(direction)))
                 else:
-                    print('\tEstimated cook time: about {0} minutes'.format(average_cook_time_per_step))
+                    print('\tEstimated cook time: about {0} m'.format(average_cook_time_per_step))
 
             single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
             single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))
             single_direction_ingredients = self.extract_ingredients(direction)
 
             if len(single_direction_ingredients) > 0:
-                print('\tIngredient(s):', ', '.join(single_direction_ingredients))
+                print('\tIngredient(s)      :', ', '.join(single_direction_ingredients))
             if len(single_direction_tools) > 0:
-                print('\tTool(s):', ', '.join(single_direction_tools))
+                print('\tTool(s)            :', ', '.join(single_direction_tools))
             if len(single_direction_methods) > 0:
-                print('\tMethod(s):', ', '.join(single_direction_methods))
+                print('\tMethod(s)          :', ', '.join(single_direction_methods))
