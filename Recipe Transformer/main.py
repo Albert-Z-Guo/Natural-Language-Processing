@@ -20,12 +20,17 @@ def display_recipe(recipe):
     recipe.decompose_steps()
 
 
-if __name__ == '__main__':
-    url = input('Please enter a recipe url: ')
-    print('\nInput url:\n' + url)
+def main():
+    url = input('Please enter a recipe URL: ')
+    print('\nInput URL:\n' + url)
 
-    recipe = Recipe(url)
-    display_recipe(recipe)
+    try:
+        recipe = Recipe(url)
+        display_recipe(recipe)
+    except:
+        print('\nInvlid recipe URL! Exit Program.\n')
+        return
+
 
     option = None
     possible_options = ['x', '0', '1', '2', '3', '4', '5', '6', '7']
@@ -96,3 +101,7 @@ if __name__ == '__main__':
             new_recipe = Recipe(url)
             new_recipe = indian.transform(new_recipe)
             display_recipe(new_recipe)
+
+
+if __name__ == '__main__':
+    main()
