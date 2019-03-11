@@ -10,6 +10,9 @@ from nltk.stem import PorterStemmer
 
 nlp = spacy.load('en')
 
+NOUN_TYPE_EXCEPTIONS = ['gochujang', 'parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
+ADJECTIVE_TYPE_EXCEPTIONS = ['ground', 'skinless', 'boneless', 'Parmesan']
+
 
 class Recipe:
     def __init__(self, url):
@@ -95,14 +98,12 @@ class Recipe:
 
     def nouns_only(self, line):
         noun_types = ['NN', 'NNS', 'NNP', 'NNPS']
-        adjective_type_exceptions = ['ground', 'skinless', 'boneless']
-        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'cilantro', 'such']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
         token_tag_pairs = self.tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
-            if (not (pair[1] in noun_types) or pair[0] in adjective_type_exceptions) and pair[0] not in noun_type_exceptions:
+            if (not (pair[1] in noun_types) or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS) and pair[0] not in NOUN_TYPE_EXCEPTIONS:
                 return False
         return True
 
@@ -119,15 +120,13 @@ class Recipe:
         # find ', abc' or ' - abc' where 'abc' is in arbitrary length
         match = re.findall(re.compile(r'[^.], .*| - .*'), line)
         if len(match) != 0:
-            if match[-1][-1] == ')':
+            if '(' not in match[-1] and match[-1][-1] == ')':
                 return match[-1][1:-1]
             else:
                 return match[-1][1:]
 
 
     def extract_descriptor(self, ingredient_name):
-        noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
-        adjective_type_exceptions = ['ground', 'skinless', 'boneless', 'Parmesan']
         descriptor = []
         token_tag_pairs = []
 
@@ -140,8 +139,8 @@ class Recipe:
 
         for pair in token_tag_pairs:
             # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
-            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] in adjective_type_exceptions:
-                if pair[0] not in noun_type_exceptions:
+            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS:
+                if pair[0] not in NOUN_TYPE_EXCEPTIONS:
                     descriptor.append(pair[0])
         if len(descriptor) != 0:
             return ' '.join(descriptor)
