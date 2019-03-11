@@ -38,7 +38,7 @@
   - [Wikipedia: List of sauces](https://en.wikipedia.org/wiki/List_of_sauces)
   - [22 Common Herbs and Spices in Asian Cuisine](https://delishably.com/spices-seasonings/Herbs-and-Spices-in-Asian-Cooking)
   - [World Spice Merchant: Asian](https://www.worldspice.com/spices/spices-asia)
-* For unhealthy to healthy, we use the following food 'hacks':
+* Healthy food 'hacks':
   - [18 Food Replacement Hacks that Make Healthy Eating Easy](https://www.swansonvitamins.com/blog/natural-health-tips/food-replacement-hacks)
   - [Low-calorie, lower-fat alternative foods](https://www.health24.com/Diet-and-nutrition/Weight-loss/Low-calorie-lower-fat-alternative-foods-20120721)
   - [42 Foods That Are Low in Calories](https://www.healthline.com/nutrition/42-foods-low-in-calories#section1)
