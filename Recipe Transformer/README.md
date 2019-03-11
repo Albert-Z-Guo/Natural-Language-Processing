@@ -45,3 +45,8 @@ To install [NLTK](http://www.nltk.org/index.html) packages used, such as `'punkt
 ```
 python3 -m nltk.downloader all
 ```
+### Performance Evaluation
+To evaluate Recipe Transformer's performance, run:
+```
+python3 main.py
+```
