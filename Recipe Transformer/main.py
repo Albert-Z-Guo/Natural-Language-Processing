@@ -39,7 +39,7 @@ if __name__ == '__main__':
            'https://www.allrecipes.com/recipe/246771/gluten-free-mac-n-cheese/?internalSource=staff%20pick&referringId=509&referringContentType=Recipe%20Hub&clickId=cardslot%202'
     ]
 
-    url = urls[1]
+    url = urls[2]
     print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
