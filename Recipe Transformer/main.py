@@ -28,9 +28,8 @@ def main():
         recipe = Recipe(url)
         display_recipe(recipe)
     except:
-        print('\nInvlid recipe URL! Exit Program.\n')
+        print('\nInvalid recipe URL! Exit Program.\n')
         return
-
 
     option = None
     possible_options = ['x', '0', '1', '2', '3', '4', '5', '6', '7']
