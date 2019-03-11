@@ -1,10 +1,10 @@
-#-*- coding:utf-8 _*-
-"""
+#-*- coding:utf-8 _*-  
+""" 
 @author:Xin TONG
-@file: india_transformation.py
+@file: india_transformation.py 
 @time: 2019/03/08
-@site:
-@software: PyCharm
+@site:  
+@software: PyCharm 
 """
 
 import pprint
@@ -94,7 +94,9 @@ def indiafy_ingredients(ingredients,recipe_name):
         new_line = ingredient;
         line = ingredient.split(' ')
         for item in line:
-
+            if item == "curry":
+                india_dict["curry"] == True
+                continue
             for indias in india_dict.keys():
                 if item in indias:
                     india_dict[item] =True
@@ -154,6 +156,7 @@ def indiafy_ingredients(ingredients,recipe_name):
         new_ingredients.add("chopped turmeric")
         print(str(num_change) + ': Add "chopped turmeric"')
         add_dict.append("chopped turmeric")
+        num_change = num_change + 1
     # print('Transfer ends after ' + str(num_change) + ' times of changes.')
     # if num_change < 2:
     #     print("Notice!!! We don't recommend you to do that!")
@@ -179,7 +182,6 @@ def indiafy_directions(directions,subsitute_dict, add_dict,num):
             str_temp = str_temp + ', '+record
     str_temp = 'Mix '+ str_temp + 'together with other materials.'
     new_directions.add(str_temp)
-    num = num + 1
     print(str(num) + ': Add the direction "' + str_temp+'"')
 
     # print('Transfer ends after ' + str(num) + ' times of changes.')
@@ -193,7 +195,7 @@ def transform(recipe):
     new_directions = indiafy_directions(recipe.directions, subsitute_dict, add_dict,num)
     recipe.directions = new_directions
     recipe.ingredients = new_ingredients
-    recipe.name = recipe.name + " (Transformed to Indian)"
+    recipe.name = recipe.name + "(Transformed to Indian)"
     return recipe
 
 
