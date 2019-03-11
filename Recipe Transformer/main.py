@@ -1,10 +1,10 @@
 from recipe import Recipe
 from vegetarian import Vegetarian
 from non_vegetarian import NonVegetarian
-import southeast_asian_transformation as southeast_asian
-import thai_transformation as thai
-import healthy_transformation as healthy
-import india_transformation as india
+import southeast_asian
+import thai
+import healthy
+import indian
 
 
 def display_recipe(recipe):
@@ -116,5 +116,5 @@ if __name__ == '__main__':
 
         if option == '7':
             new_recipe = Recipe(url)
-            new_recipe = india.transform(new_recipe)
+            new_recipe = indian.transform(new_recipe)
             display_recipe(new_recipe)
