@@ -11,7 +11,7 @@ from nltk.stem import PorterStemmer
 nlp = spacy.load('en')
 
 NOUN_TYPES = ['NN', 'NNS', 'NNP', 'NNPS']
-NOUN_TYPE_EXCEPTIONS = ['gochujang', 'parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
+NOUN_TYPE_EXCEPTIONS = ['orange', 'gochujang', 'parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'such']
 ADJECTIVE_TYPE_EXCEPTIONS = ['ground', 'skinless', 'boneless', 'Parmesan']
 
 
@@ -138,10 +138,13 @@ class Recipe:
                 token_tag_pairs.append([(token.text, token.tag_) for token in nlp(element)][0])
 
         for pair in token_tag_pairs:
-            # if the word is an adjective, an adverb, or a past participle of a verb, or exception like 'ground'
-            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS:
+            # if the word is an adjective, an adverb, a past participle of a verb, a conjunction, or exception like 'ground'
+            if pair[1] == "JJ" or pair[1] == "RB" or pair[1] == "VBN" or pair[1] == "CC" or pair[0] in ADJECTIVE_TYPE_EXCEPTIONS:
                 if pair[0] not in NOUN_TYPE_EXCEPTIONS:
                     descriptor.append(pair[0])
+
+        if len(descriptor) == 1 and descriptor[-1] == 'and':
+            return None
         if len(descriptor) != 0:
             return ' '.join(descriptor)
 
