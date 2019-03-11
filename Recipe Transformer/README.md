@@ -34,15 +34,17 @@
      │   ├── recipe_data_representation.ipynb    # parses and represents recipe data structure
      │   ├── transform_vegetarian.ipynb          # transforms a recipe to/from vegetarian
      │   └── transform_southeast_asia.ipynb      # transforms a recipe to Southeast Asian
-     ├── requirements.txt                        # contains all used libraries for quick pip installation
-     ├── healthy.py                              # contains transformation to and from Healthy
-     ├── indian.py                               # contains transformation to Indian
+     ├── .gitignore                              # contains file types not to be synced on GitHub
+     ├── README.md                               
+     ├── healthy.py                              # transforms a recipe to and from Healthy
+     ├── indian.py                               # transforms a recipe to Indian
      ├── main.py                                 # contains command-line user interface
-     ├── non-vegetarian.py                       # contains transformation to Non-vegetarian
-     ├── recipe.py                               # contains recipe data
-     ├── southeast_asian.py                      # contains transformation to Southeast Asian
-     ├── thai.py                                 # contains transformation to Thai
-     └── vegetarian.py                           # contains transformation to Vegetarian
+     ├── non-vegetarian.py                       # transforms a recipe to Non-vegetarian
+     ├── recipe.py                               # contains structured recipe data
+     ├── requirements.txt                        # contains all used libraries for quick pip installation
+     ├── southeast_asian.py                      # transforms a recipe to Southeast Asian
+     ├── thai.py                                 # transforms a recipe to Thai
+     └── vegetarian.py                           # transforms a recipe to Vegetarian
 
 #### External data source used:
 * Tools:
