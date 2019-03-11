@@ -31,7 +31,7 @@ with open('data/sauces.txt', 'r') as file:
 file.close()
 
 custom_to_eastasian_dict = {
-    'butter': 'pork fat',   
+    'butter': 'pork fat',
     'consomme': 'dashi',
     'bouillon': 'dashi',
     'milk': 'coconut milk',
@@ -73,11 +73,11 @@ def transform(recipe):
         else:
             print('Please try another transform category.')
             return 2, recipe
-    
+
     # print the transformed ingredient
-    print('\nHere are the changes for southeast asian style:\n')
+    print('\nIngredients Change(s) to Southeast Asian:')
     for ingre in list(subsitute_dict.keys()):
-        print('{0}. Change ingredient {1} into {2}.'.format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
+        print("{0}. '{1}' to '{2}'".format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
         transform_log_index += 1
     add_southeast_asian_sauce(recipe)
     return 1, recipe
@@ -91,10 +91,10 @@ def transform_ingredients(recipe):
         quantity, measurement, descriptor, ingredient, preparation = recipe.extract_all(line)
         new_ingredient = ingredient
         ingredient  = ingredient.lower()
-        
+
         if ingredient in asian_spices or ingredient in asian_sauces:
             eastasian_ingredient_appearance_count+=1
-        
+
         if ingredient in spices and ingredient not in asian_spices:
             sub_spice = randomly_select(list(asian_spices))
             # get different substitution spice
@@ -108,7 +108,7 @@ def transform_ingredients(recipe):
             subsitute_dict[ingredient]['preparation'] = None
 
             new_ingredient = ' '.join([quantity, measurement, sub_spice])
-            
+
         elif ingredient in sauces and ingredient not in asian_sauces:
             sub_sauce = randomly_select(list(asian_sauces))
             # get different substitution sauce
@@ -121,7 +121,7 @@ def transform_ingredients(recipe):
             subsitute_dict[ingredient]['preparation'] = None
 
             new_ingredient = ' '.join([quantity, measurement, sub_sauce])
-            
+
         else:
             for i in list(custom_to_eastasian_dict.keys()):
                 if (i in ingredient or ingredient in i) and custom_to_eastasian_dict[i] != ingredient:
@@ -131,7 +131,7 @@ def transform_ingredients(recipe):
                     subsitute_dict[ingredient]['measurement'] = measurement
                     subsitute_dict[ingredient]['descriptor'] = descriptor
                     subsitute_dict[ingredient]['preparation'] = preparation
-                    
+
                     # for situations like 'salted butter' / 'beef bouillon'
                     if i != ingredient and len(ingredient.split()) > 1:
                         subsitute_dict[i] = {}
@@ -143,7 +143,7 @@ def transform_ingredients(recipe):
                     replacement = []
                     for i in [quantity, measurement, descriptor, sub]:
                         if i is not None:
-                            replacement.append(i)   
+                            replacement.append(i)
 
                     new_ingredient = ' '.join(replacement)
 
@@ -157,7 +157,7 @@ def transform_directions(recipe):
         for ingredient in subsitute_dict.keys():
             if ingredient in new_direction.lower():
                 new_direction = re.sub(ingredient, subsitute_dict[ingredient]['substitution'], new_direction, flags=re.IGNORECASE)
-            
+
         new_directions.append(new_direction)
 
     recipe.directions = new_directions
@@ -165,9 +165,9 @@ def transform_directions(recipe):
 def force_transform(recipe):
     # print the transformed ingredient
     global transform_log_index
-    print('\nHere are the changes for southeast asian style:\n')
+    print('\nIngredients Change(s) to Southeast Asian:')
     for ingre in list(subsitute_dict.keys()):
-        print('{0}. Change ingredient {1} into {2}.'.format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
+        print("{0}. '{1}' to '{2}'".format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
         transform_log_index += 1
 
     add_southeast_asian_sauce(recipe)
@@ -178,11 +178,11 @@ def add_mix_southeast_asian_spice(recipe):
     spice_list = []
     while len(spice_list) < 2:
         spice_list.append(randomly_select(list(asian_spices)))
-        
+
     for spice in spice_list:
         new_ingredient = '1 tablespoon '+spice
         recipe.ingredients.append(new_ingredient)
-        
+
     new_direction = 'Mix {0} and {1} well and add to our cuisine for more flavor.'.format(spice_list[0], spice_list[1])
     recipe.directions.append(new_direction)
 
@@ -205,5 +205,3 @@ def add_southeast_asian_sauce(recipe):
     print('{0}. Add new directiion "{1}".'.format(transform_log_index, new_direction))
     transform_log_index += 1
     recipe.directions.insert(-1, new_direction)
-    
-

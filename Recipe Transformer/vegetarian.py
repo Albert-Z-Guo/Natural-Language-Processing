@@ -182,7 +182,7 @@ class Vegetarian(Recipe):
 
 
     def generate_transformed_directions(self):
-        print('\nIngredients Change(s):')
+        print('\nIngredients Change(s) to Vegetarian:')
         substitution_words = set()
         replacements = set()
         new_directions = []
@@ -210,5 +210,5 @@ class Vegetarian(Recipe):
             new_directions.append(new_direction)
 
         for i, replacement in enumerate(replacements):
-            print('{0}: {1}'.format(i+1, replacement))
+            print('{0}. {1}'.format(i+1, replacement))
         return new_directions
