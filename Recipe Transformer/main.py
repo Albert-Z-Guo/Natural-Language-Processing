@@ -105,7 +105,7 @@ if __name__ == '__main__':
             if transform_status == 0:
                 print('Already Southeast Style. No need to transform.')
             elif transform_status == 1:
-                display_recipe(recipe)
+                display_recipe(new_recipe)
             else:
                 pass
 
