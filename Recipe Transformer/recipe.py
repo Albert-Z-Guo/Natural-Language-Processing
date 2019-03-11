@@ -99,7 +99,7 @@ class Recipe:
         noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'cilantro', 'such']
         # replace everything to '' except whitespace, alphanumeric character
         line = re.sub(r'[^\w\s]', '', line)
-        token_tag_pairs = tokenize(line)
+        token_tag_pairs = self.tokenize(line)
         for pair in token_tag_pairs:
             # if the word is not a noun or cardinal number
             if (not (pair[1] in noun_types) or pair[0] in adjective_type_exceptions) and pair[0] not in noun_type_exceptions:
