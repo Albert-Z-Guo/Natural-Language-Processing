@@ -1,6 +1,6 @@
 from recipe import Recipe
-from to_vegetarian import ToVegetarian
-from to_non_vegetarian import ToNonVegetarian
+from vegetarian import Vegetarian
+from non_vegetarian import NonVegetarian
 import southeast_asian_transformation as southeast_asian
 import thai_transformation as thai
 import healthy_transformation as healthy
@@ -12,7 +12,7 @@ def display_recipe(recipe):
     recipe.decompose_ingredients()
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     if len(recipe.cooking_methods) == 0:
-        print('\nNo major cooking method(s) captured. The following cooking actions are captured instead:')
+        print('\nNo major cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
         print(', '.join(list(verb.lower() for verb in recipe.directions_verbs)))
     else:
         print('\nMajor cooking method(s):\n' + ', '.join(recipe.cooking_methods))
@@ -29,17 +29,18 @@ if __name__ == '__main__':
     #url = 'https://www.allrecipes.com/recipe/59661/spinach-enchiladas/'
 
     # 0.pasta 1.soup 2.low-fat 3.cookies 4.vegetables 5.beef 6.cheese
-    url_set = ['https://www.allrecipes.com/recipe/261148/creamy-pasta-bake-with-cherry-tomatoes-and-basil/?internalSource=streams&referringId=95&referringContentType=Recipe%20Hub&clickId=st_trending_s',
-               'https://www.allrecipes.com/recipe/13183/restaurant-style-zuppa-toscana/',
-               'https://www.allrecipes.com/recipe/245863/chicken-stuffed-baked-avocados/?internalSource=streams&referringId=742&referringContentType=Recipe%20Hub&clickId=st_trending_b',
-               'https://www.allrecipes.com/recipe/241752/homemade-samoa-cookies/?internalSource=streams&referringId=362&referringContentType=Recipe%20Hub&clickId=st_trending_s',
-               'https://www.allrecipes.com/recipe/86687/broccoli-with-garlic-butter-and-cashews/?internalSource=hub%20recipe&referringId=225&referringContentType=Recipe%20Hub&clickId=cardslot%2013',
-               'https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=200&referringContentType=Recipe%20Hub&clickId=cardslot%204',
-               'https://www.allrecipes.com/recipe/246771/gluten-free-mac-n-cheese/?internalSource=staff%20pick&referringId=509&referringContentType=Recipe%20Hub&clickId=cardslot%202'
-               ]
 
-    url = url_set[1]
-    # print('\nInput url:\n' + url)
+    urls = ['https://www.allrecipes.com/recipe/261148/creamy-pasta-bake-with-cherry-tomatoes-and-basil/?internalSource=streams&referringId=95&referringContentType=Recipe%20Hub&clickId=st_trending_s',
+           'https://www.allrecipes.com/recipe/13183/restaurant-style-zuppa-toscana/',
+           'https://www.allrecipes.com/recipe/245863/chicken-stuffed-baked-avocados/?internalSource=streams&referringId=742&referringContentType=Recipe%20Hub&clickId=st_trending_b',
+           'https://www.allrecipes.com/recipe/241752/homemade-samoa-cookies/?internalSource=streams&referringId=362&referringContentType=Recipe%20Hub&clickId=st_trending_s',
+           'https://www.allrecipes.com/recipe/86687/broccoli-with-garlic-butter-and-cashews/?internalSource=hub%20recipe&referringId=225&referringContentType=Recipe%20Hub&clickId=cardslot%2013',
+           'https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=200&referringContentType=Recipe%20Hub&clickId=cardslot%204',
+           'https://www.allrecipes.com/recipe/246771/gluten-free-mac-n-cheese/?internalSource=staff%20pick&referringId=509&referringContentType=Recipe%20Hub&clickId=cardslot%202'
+    ]
+
+    url = urls[1]
+    print('\nInput url:\n' + url)
 
     recipe = Recipe(url)
     display_recipe(recipe)
@@ -59,7 +60,7 @@ if __name__ == '__main__':
         print('\t6. Thai')
         print('\t7. Indian')
 
-        option = input('Please enter a character/number option: ')
+        option = input('\nPlease enter a character/number option: ')
         while (option not in possible_options):
             print('Invalid option! Try again.')
             option = input('Please enter a character/number option: ')
@@ -71,11 +72,11 @@ if __name__ == '__main__':
             display_recipe(recipe)
 
         if option == '1':
-            vegetarian_recipe = ToVegetarian(url)
+            vegetarian_recipe = Vegetarian(url)
             display_recipe(vegetarian_recipe)
 
         if option == '2':
-            non_vegetarian_recipe = ToNonVegetarian(url)
+            non_vegetarian_recipe = NonVegetarian(url)
             display_recipe(non_vegetarian_recipe)
 
         if option == '3':
