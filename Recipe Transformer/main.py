@@ -15,7 +15,7 @@ def display_recipe(recipe):
         print('\nNo primary cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
         print(', '.join(verb.lower() for verb in recipe.directions_verbs))
     else:
-        print('\nMajor cooking method(s):\n' + ', '.join(recipe.cooking_methods))
+        print('\nPrimary cooking method(s):\n' + ', '.join(recipe.cooking_methods))
     print('\nCooking steps:')
     recipe.decompose_steps()
 
@@ -96,14 +96,14 @@ if __name__ == '__main__':
             display_recipe(new_recipe)
 
         if option == '5':
+            new_recipe = Recipe(url)
+            transform_status, new_recipe = southeast_asian.transform(new_recipe)
             # transform_status:
             # 0: No need to transform, already southeast asia
             # 1: Dispalay the recipe
             # 2: No display needed
-            new_recipe = Recipe(url)
-            transform_status, new_recipe = southeast_asian.transform(new_recipe)
             if transform_status == 0:
-                print('Already Southeast Style. No need to transform.')
+                print('\nAlready Southeast Style. No need to transform.')
             elif transform_status == 1:
                 display_recipe(new_recipe)
             else:
