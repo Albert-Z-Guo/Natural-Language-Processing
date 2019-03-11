@@ -442,17 +442,16 @@ class Recipe:
         total_time = 0
         times = []
         for sentence in sent_tokenize(direction):
-            match = re.findall(re.compile(r'\d+.*second[s]?\b|\d+.*minute[s]?\b'), sentence)
+            match = re.findall(re.compile(r'\d+[^,.;]*second[s]?\b|\d+[^,.;]*minute[s]?\b'), sentence)
             if len(match) != 0:
                 for m in match:
                     times.append(m)
-
         if len(times) == 0:
             return None
-
         if len(times) == 1:
+            if 'minute' in times[-1]:
+                return str(extract_maximum_minutes(times[-1])) + ' minutes'
             return times[-1].replace('more ', '')
-
         if len(times) > 1:
             for time in times:
                 total_time += self.extract_maximum_minutes(time)
