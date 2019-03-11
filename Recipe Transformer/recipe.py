@@ -93,7 +93,7 @@ class Recipe:
         return True
 
 
-    def nouns_only(line):
+    def nouns_only(self, line):
         noun_types = ['NN', 'NNS', 'NNP', 'NNPS']
         adjective_type_exceptions = ['ground', 'skinless', 'boneless']
         noun_type_exceptions = ['parsley', 'garlic', 'chili', 'chile', 'substitute', 'cream', 'flanken', 'cilantro', 'such']
