@@ -273,12 +273,12 @@ class Recipe:
         print('Ingredients:')
         for line in self.ingredients:
             quantity, measurement, descriptor, ingredient, preparation = self.extract_all(line)
-            print('\t' + line)
-            if quantity: print('\t  quantity   :', quantity)
-            if measurement: print('\t  measurement:', measurement)
-            if descriptor: print('\t  descriptor :', descriptor)
-            if ingredient: print('\t  ingredient :', ingredient)
-            if preparation: print('\t  preparation:', preparation)
+            print('    -> ' + line)
+            if quantity: print('\t quantity   :', quantity)
+            if measurement: print('\t measurement:', measurement)
+            if descriptor: print('\t descriptor :', descriptor)
+            if ingredient: print('\t ingredient :', ingredient)
+            if preparation: print('\t preparation:', preparation)
             print()
 
 
