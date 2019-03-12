@@ -110,7 +110,7 @@ def thaify_ingredients(ingredients,recipe_name):
             if item in sauces and item not in asian_sauces:
                 sub_sauce = choice(list(asian_sauces))
                 # get different substitution sauce
-                print(str(num_change)+': "'+item+'" to '+sub_sauce+'"')
+                print(str(num_change)+': "'+item+'" to "'+sub_sauce+'"')
                 subsitute_dict[item] = sub_sauce
                 new_line = new_line.replace(item, sub_sauce)
                 num_change = num_change+1
