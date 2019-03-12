@@ -442,10 +442,12 @@ class Recipe:
 
     def extract_maximum_minutes(self, time):
         match = re.findall(re.compile(r'[1-9]*[0-9]'), time)
-        if 'minute' in time:
-            return int(match[-1])
         if 'second' in time:
             return round(int(match[-1])/60, 2)
+        if 'minute' in time:
+            return int(match[-1])
+        if 'hour' in time:
+            return int(match[-1])*60
         return 0
 
 
