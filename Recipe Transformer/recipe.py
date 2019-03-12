@@ -424,13 +424,19 @@ class Recipe:
         return directions_verbs
 
 
+    def lemmatize(self, line):
+        if len(line.split()) == 1:
+            return [token.lemma_ for token in nlp(line)][0]
+        return line
+
+
     def extract_methods(self, directions_verbs):
         methods = self.retrieve_cooking_methods_set()
         methods |= self.retrieve_other_cooking_methods_set()
         directions_methods = set()
         for verb in directions_verbs:
             if PorterStemmer().stem(verb) in methods:
-                directions_methods |= {verb}
+                directions_methods |= {self.lemmatize(verb)}
         return directions_methods
 
 
