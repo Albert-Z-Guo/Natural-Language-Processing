@@ -453,7 +453,7 @@ class Recipe:
         total_time = 0
         times = []
         for sentence in sent_tokenize(direction):
-            match = re.findall(re.compile(r'\d+[^,.;]*second[s]?\b|\d+[^,.;]*minute[s]?\b'), sentence)
+            match = re.findall(re.compile(r'\d+[^,.;]*second[s]?\b|\d+[^,.;]*minute[s]?\b|\d+[^,.;]*hour[s]?\b'), sentence)
             if len(match) != 0:
                 for m in match:
                     times.append(m)
