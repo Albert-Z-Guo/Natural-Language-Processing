@@ -65,13 +65,14 @@ def transform(recipe):
     transform_directions(recipe)
 
     if len(subsitute_dict.keys()) <= 2:
-        add_mix_southeast_asian_spice(recipe)
-
+        print('\nWARNING:This recipe is not suitable for Southeast Asian transformation.')
     # print the transformed ingredient
     print('\nIngredients Change(s) to Southeast Asian:')
     for ingre in list(subsitute_dict.keys()):
         print("{0}. '{1}' to '{2}'".format(transform_log_index, ingre, subsitute_dict[ingre]['substitution']))
         transform_log_index += 1
+    if len(subsitute_dict.keys()) <= 2:
+        add_mix_southeast_asian_spice(recipe)
     add_southeast_asian_sauce(recipe)
     return 1, recipe
 
