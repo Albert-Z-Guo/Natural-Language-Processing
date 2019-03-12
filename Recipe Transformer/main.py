@@ -12,10 +12,10 @@ def display_recipe(recipe):
     recipe.decompose_ingredients()
     print('Tool(s) used:\n' + ', '.join(recipe.tools))
     if len(recipe.cooking_methods) == 0:
-        print('\nNo primary cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
+        print('\nNo primary/other cooking method(s) captured. The following cooking actions/ingredients are captured instead:')
         print(', '.join(verb.lower() for verb in recipe.directions_verbs))
     else:
-        print('\nPrimary cooking method(s):\n' + ', '.join(recipe.cooking_methods))
+        print('\nPrimary/other cooking method(s):\n' + ', '.join(recipe.cooking_methods))
     print('\nCooking steps:')
     recipe.decompose_steps()
 
