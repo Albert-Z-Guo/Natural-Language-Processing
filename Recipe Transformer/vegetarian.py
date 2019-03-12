@@ -120,8 +120,9 @@ class Vegetarian(Recipe):
 
 
     def is_meat(self, ingredient):
-        if ingredient in self.meat_dict:
-            return True
+        for i in ingredient.split():
+            if i in self.meat_dict:
+                return True
         if self.is_broth(ingredient):
             return True
         return False
