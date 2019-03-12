@@ -17,8 +17,10 @@
      - Other cooking methods (e.g. chop, grate, stir, mince, etc.)
    - Steps (parse the directions into a series of steps that each consist of ingredients, tools, methods, and times)
 3. Ask the user what kind of transformation they want to do:
-   - To and from vegetarian
-   - To and from healthy
+   - To Vegetarian
+   - To Non-vegetarian
+   - To Healthy
+   - To Non-healthy
    - To Southeast Asian
    - To Thai
    - To Indian
