@@ -15,7 +15,11 @@
    - Methods
      - Primary cooking method (e.g. sauté, broil, boil, poach, etc.)
      - Other cooking methods (e.g. chop, grate, stir, mince, etc.)
-   - Steps (parse the directions into a series of steps that each consist of ingredients, tools, methods, and times)
+   - Steps (parsed directions)
+     - Estimated Time
+     - Ingredients
+     - Tools
+     - Cooking Methods
 3. Ask the user what kind of transformation they want to do:
    - To Vegetarian
    - To Non-vegetarian
