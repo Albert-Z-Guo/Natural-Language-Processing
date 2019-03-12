@@ -410,6 +410,7 @@ class Recipe:
 
 
     def extract_directions_verbs(self, directions):
+        verb_types = ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBN']
         directions_verbs = set()
         if isinstance(directions, str):
             directions = [directions]
@@ -418,7 +419,7 @@ class Recipe:
             for sentence in sentences:
                 token_tag_pairs = self.tokenize(sentence)
                 for pair in token_tag_pairs:
-                    if pair[1] == 'VB':
+                    if pair[1] in verb_types:
                         directions_verbs |= {pair[0].lower()}
         return directions_verbs
 
