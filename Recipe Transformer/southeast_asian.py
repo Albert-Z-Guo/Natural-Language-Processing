@@ -64,7 +64,7 @@ def transform(recipe):
     transform_ingredients(recipe)
     transform_directions(recipe)
 
-    if len(subsitute_dict.keys()) <= 2:
+    if len(subsitute_dict.keys()) <= 1:
         print('WARNING: Cannot be transform to southeast asia style!')
         op = input('Do you still want to process?(y/n):')
         if (op == 'y'):
