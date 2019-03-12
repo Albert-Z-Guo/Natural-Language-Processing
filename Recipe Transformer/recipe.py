@@ -491,6 +491,9 @@ class Recipe:
 
             single_direction_tools = self.extract_tools(self.extract_directions_nouns(direction))
             single_direction_methods = self.extract_methods(self.extract_directions_verbs(direction))
+            for i in direction.split():
+                if self.lemmatize(i) in self.cooking_methods:
+                    single_direction_methods |= {self.lemmatize(i)}
             single_direction_ingredients = self.extract_ingredients(direction)
 
             if len(single_direction_ingredients) > 0:
