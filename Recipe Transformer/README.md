@@ -42,7 +42,7 @@
      │   └── transform_southeast_asia.ipynb      # transforms a recipe to Southeast Asian
      ├── .gitignore                              # contains file types not to be synced with GitHub
      ├── README.md                               
-     ├── healthy.py                              # transforms a recipe to /from Healthy
+     ├── healthy.py                              # transforms a recipe to/from Healthy
      ├── indian.py                               # transforms a recipe to Indian
      ├── install.bash                            # installs all used libraries/dependencies
      ├── main.py                                 # contains this project's command-line user interface
